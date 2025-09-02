@@ -1,0 +1,5 @@
+{
+  "name": "Cross-Cultural Idiom Translator",
+  "description": "An application that translates idioms across English, Spanish, and Vietnamese, focusing on cultural equivalents rather than literal translations. It provides the equivalent idiom, its literal meaning, and an explanation.",
+  "requestFramePermissions": []
+}

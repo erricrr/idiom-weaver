@@ -11,8 +11,8 @@ import Welcome from './components/Welcome';
 
 const App: React.FC = () => {
   const [idiomInput, setIdiomInput] = useState<string>('');
-  const [sourceLanguage, setSourceLanguage] = useState<Language>(Language.English);
-  const [targetLanguages, setTargetLanguages] = useState<Language[]>([Language.Spanish, Language.Vietnamese, Language.French]);
+  const [sourceLanguage, setSourceLanguage] = useState<Language | null>(null);
+  const [targetLanguages, setTargetLanguages] = useState<Language[]>([]);
   const [results, setResults] = useState<ApiResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +21,10 @@ const App: React.FC = () => {
     event.preventDefault();
     if (!idiomInput.trim()) {
       setError('Please enter an idiom to translate.');
+      return;
+    }
+    if (!sourceLanguage) {
+      setError('Please select a source language.');
       return;
     }
     if (targetLanguages.length === 0) {

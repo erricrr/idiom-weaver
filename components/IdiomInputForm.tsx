@@ -4,8 +4,8 @@ import { Language } from '../types';
 interface IdiomInputFormProps {
   idiomInput: string;
   setIdiomInput: (value: string) => void;
-  sourceLanguage: Language;
-  setSourceLanguage: (language: Language) => void;
+  sourceLanguage: Language | null;
+  setSourceLanguage: (language: Language | null) => void;
   targetLanguages: Language[];
   setTargetLanguages: (languages: Language[]) => void;
   handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
@@ -37,6 +37,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   const [draggedLanguage, setDraggedLanguage] = useState<DraggedLanguage | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<SelectedLanguage | null>(null);
   const [showTargetLanguages, setShowTargetLanguages] = useState(false);
+  const [clickedDropZone, setClickedDropZone] = useState<'source' | 'target' | null>(null);
 
   const sourceBoxRef = useRef<HTMLDivElement>(null);
   const targetBoxRef = useRef<HTMLDivElement>(null);
@@ -68,7 +69,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
       // Moving to target languages
       if (draggedLanguage.source === 'source') {
         // Moving from source to target
-        setSourceLanguage(Language.English); // Reset source to default
+        setSourceLanguage(null); // Reset source to empty
       }
 
       if (!targetLanguages.includes(draggedLanguage.language)) {
@@ -77,6 +78,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
     }
 
     setDraggedLanguage(null);
+    setClickedDropZone(null);
   };
 
   const handleLanguageClick = (language: Language, source: 'pool' | 'source' | 'target', index?: number) => {
@@ -89,12 +91,14 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
     // If clicking the same language, deselect it
     if (selectedLanguage.language === language && selectedLanguage.source === source) {
       setSelectedLanguage(null);
+      setClickedDropZone(null);
       return;
     }
 
     // If clicking a different language, select the new one
     if (selectedLanguage.language !== language || selectedLanguage.source !== source) {
       setSelectedLanguage({ language, source, index });
+      setClickedDropZone(null);
       return;
     }
   };
@@ -114,7 +118,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
       // Moving to target languages
       if (selectedLanguage.source === 'source') {
         // Moving from source to target
-        setSourceLanguage(Language.English); // Reset source to default
+        setSourceLanguage(null); // Reset source to empty
       }
 
       if (!targetLanguages.includes(selectedLanguage.language)) {
@@ -123,6 +127,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
     }
 
     setSelectedLanguage(null);
+    setClickedDropZone(null);
   };
 
   const isLanguageInTarget = (language: Language) => targetLanguages.includes(language);
@@ -155,17 +160,15 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
           onClick={() => {
             if (selectedLanguage) {
               handleDropZoneClick('source');
-            } else if (!sourceLanguage) {
-              // Show language picker when clicking empty source box
-              const availableLang = Object.values(Language).find(lang => !targetLanguages.includes(lang));
-              if (availableLang) {
-                setSourceLanguage(availableLang);
-              }
+            } else {
+              setClickedDropZone('source');
             }
           }}
           className={`
             w-full h-12 border-2 border-dashed rounded-lg p-2 flex items-center justify-center cursor-pointer transition-all duration-200
             ${selectedLanguage
+              ? 'border-yellow-400 bg-yellow-400/10 hover:border-yellow-300 hover:bg-yellow-400/20'
+              : clickedDropZone === 'source' && !sourceLanguage
               ? 'border-yellow-400 bg-yellow-400/10 hover:border-yellow-300 hover:bg-yellow-400/20'
               : sourceLanguage
               ? 'border-cyan-500 bg-cyan-500/10'
@@ -191,7 +194,9 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
               {sourceLanguage}
             </div>
           ) : selectedLanguage ? (
-            <p className="text-yellow-400 text-xs text-center font-medium">Drop {selectedLanguage.language} here</p>
+            <p className="text-yellow-400 text-xs text-center font-medium">Click or drop {selectedLanguage.language} here</p>
+          ) : clickedDropZone === 'source' && !sourceLanguage ? (
+            <p className="text-yellow-400 text-xs text-center font-medium">Ready to receive language</p>
           ) : (
             <p className="text-slate-500 text-xs text-center">Click or drag</p>
           )}
@@ -270,17 +275,15 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
               onClick={() => {
                 if (selectedLanguage) {
                   handleDropZoneClick('target');
-                } else if (targetLanguages.length === 0) {
-                  // Show language picker when clicking empty target box
-                  const availableLang = Object.values(Language).find(lang => lang !== sourceLanguage);
-                  if (availableLang) {
-                    setTargetLanguages([availableLang]);
-                  }
+                } else {
+                  setClickedDropZone('target');
                 }
               }}
               className={`
                 min-h-[60px] border-2 border-dashed rounded-lg p-2 transition-all duration-200 cursor-pointer
                 ${selectedLanguage
+                  ? 'border-yellow-400 bg-yellow-400/10 hover:border-yellow-300 hover:bg-yellow-400/20'
+                  : clickedDropZone === 'target' && targetLanguages.length === 0
                   ? 'border-yellow-400 bg-yellow-400/10 hover:border-yellow-300 hover:bg-yellow-400/20'
                   : targetLanguages.length > 0
                   ? 'border-purple-500 bg-purple-500/10'
@@ -312,6 +315,8 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                 </div>
               ) : selectedLanguage ? (
                 <p className="text-yellow-400 text-xs text-center font-medium">Click or drop {selectedLanguage.language} here</p>
+              ) : clickedDropZone === 'target' && targetLanguages.length === 0 ? (
+                <p className="text-yellow-400 text-xs text-center font-medium">Ready to receive languages</p>
               ) : (
                 <p className="text-slate-500 text-xs text-center">Click or drag languages here</p>
               )}

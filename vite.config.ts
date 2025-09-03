@@ -12,6 +12,14 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      server: {
+        proxy: {
+          '/api/tts': {
+            target: 'http://localhost:3001',
+            changeOrigin: true
+          }
+        }
       }
     };
 });

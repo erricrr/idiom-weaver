@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { IdiomTranslation } from '../types';
+import { TTSService } from '../services/ttsService';
 
 interface ResultCardProps {
   language: string;
@@ -9,14 +10,36 @@ interface ResultCardProps {
 }
 
 const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [ttsService] = useState(() => new TTSService());
+
+  const handleTextClick = async () => {
+    if (isPlaying) return;
+
+    try {
+      setIsPlaying(true);
+      await ttsService.playTextInLanguage(data.idiom, language);
+    } catch (error) {
+      console.error('Failed to play TTS:', error);
+    } finally {
+      setIsPlaying(false);
+    }
+  };
+
   return (
     <div className={`bg-slate-800/60 p-6 rounded-lg shadow-xl border-t-4 ${borderColor} flex flex-col h-full transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl`}>
       <h3 className="text-2xl font-bold text-white mb-2">{language}</h3>
 
       <div className="mb-4">
-      <p className="text-cyan-300 text-lg font-semibold underline decoration-dotted underline-offset-4">
-  {data.idiom}
-</p>
+        <p
+          className={`text-cyan-300 text-lg font-semibold underline decoration-dotted cursor-pointer ${
+            isPlaying ? 'opacity-70' : 'hover:opacity-80'
+          }`}
+          onClick={handleTextClick}
+          title={`Click to hear "${data.idiom}" in ${language}`}
+        >
+          {data.idiom}
+        </p>
       </div>
 
       <div className="space-y-4 flex-grow">

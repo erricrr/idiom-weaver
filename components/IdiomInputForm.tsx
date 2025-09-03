@@ -18,6 +18,12 @@ interface DraggedLanguage {
   index?: number;
 }
 
+interface SelectedLanguage {
+  language: Language;
+  source: 'pool' | 'source' | 'target';
+  index?: number;
+}
+
 const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   idiomInput,
   setIdiomInput,
@@ -29,6 +35,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   isLoading,
 }) => {
   const [draggedLanguage, setDraggedLanguage] = useState<DraggedLanguage | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<SelectedLanguage | null>(null);
   const [showTargetLanguages, setShowTargetLanguages] = useState(false);
 
   const sourceBoxRef = useRef<HTMLDivElement>(null);
@@ -72,25 +79,50 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
     setDraggedLanguage(null);
   };
 
-  const handleLanguageClick = (language: Language, target: 'source' | 'target') => {
+  const handleLanguageClick = (language: Language, source: 'pool' | 'source' | 'target', index?: number) => {
+    // If no language is selected, select this one
+    if (!selectedLanguage) {
+      setSelectedLanguage({ language, source, index });
+      return;
+    }
+
+    // If clicking the same language, deselect it
+    if (selectedLanguage.language === language && selectedLanguage.source === source) {
+      setSelectedLanguage(null);
+      return;
+    }
+
+    // If clicking a different language, select the new one
+    if (selectedLanguage.language !== language || selectedLanguage.source !== source) {
+      setSelectedLanguage({ language, source, index });
+      return;
+    }
+  };
+
+  const handleDropZoneClick = (target: 'source' | 'target') => {
+    if (!selectedLanguage) return;
+
     if (target === 'source') {
-      if (targetLanguages.includes(language)) {
+      // Moving to source language
+      if (selectedLanguage.source === 'target') {
         // Remove from target languages
-        setTargetLanguages(targetLanguages.filter(l => l !== language));
+        const newTargets = targetLanguages.filter((_, i) => i !== selectedLanguage.index);
+        setTargetLanguages(newTargets);
       }
-      setSourceLanguage(language);
+      setSourceLanguage(selectedLanguage.language);
     } else if (target === 'target') {
-      if (sourceLanguage === language) {
+      // Moving to target languages
+      if (selectedLanguage.source === 'source') {
         // Moving from source to target
-        setSourceLanguage(Language.English);
+        setSourceLanguage(Language.English); // Reset source to default
       }
 
-      if (!targetLanguages.includes(language)) {
-        setTargetLanguages([...targetLanguages, language]);
-      } else {
-        setTargetLanguages(targetLanguages.filter(l => l !== language));
+      if (!targetLanguages.includes(selectedLanguage.language)) {
+        setTargetLanguages([...targetLanguages, selectedLanguage.language]);
       }
     }
+
+    setSelectedLanguage(null);
   };
 
   const isLanguageInTarget = (language: Language) => targetLanguages.includes(language);
@@ -119,25 +151,10 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
           <label className="block text-sm font-medium text-slate-300">
             Language Selection
           </label>
-          <button
-            type="button"
-            onClick={() => setShowTargetLanguages(!showTargetLanguages)}
-            className="md:hidden flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
-          >
-            {showTargetLanguages ? 'Hide' : 'Show'} Languages
-            <svg
-              className={`w-4 h-4 transition-transform ${showTargetLanguages ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
         </div>
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Left Column - Available Languages */}
           <div>
             <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Available Languages</h4>
@@ -150,13 +167,15 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                   key={lang}
                   draggable
                   onDragStart={(e) => handleDragStart(e, lang, 'pool')}
-                  onClick={() => handleLanguageClick(lang, 'source')}
+                  onClick={() => handleLanguageClick(lang, 'pool')}
                   className={`
                     cursor-pointer rounded-lg border-2 border-dashed p-2 text-center text-xs font-medium transition-all duration-200
                     ${isLanguageSource(lang)
                       ? 'border-cyan-500 bg-cyan-500/20 text-cyan-300'
                       : isLanguageInTarget(lang)
                       ? 'border-purple-500 bg-purple-500/20 text-purple-300'
+                      : selectedLanguage?.language === lang && selectedLanguage?.source === 'pool'
+                      ? 'border-yellow-400 bg-yellow-400/20 text-yellow-300 ring-2 ring-yellow-400/50'
                       : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500 hover:bg-slate-600/50'
                     }
                     ${isLanguageSource(lang) ? 'ring-2 ring-cyan-500/50' : ''}
@@ -170,101 +189,134 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
           </div>
 
           {/* Right Column - Drop Zones */}
-          <div className="space-y-3">
-            {/* Source and Target Languages - Side by side on medium/small screens */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {/* Source Language Box - ALWAYS compact size */}
-              <div className="md:col-span-1">
-                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Source Language</h4>
-                <div
-                  ref={sourceBoxRef}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, 'source')}
-                  onClick={() => {
-                    // Show language picker when clicking empty source box
-                    if (!sourceLanguage) {
-                      // Find first available language that's not in targets
+          <div className="space-y-4">
+            {/* Source Language Section */}
+            <div>
+              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Source Language</h4>
+              <div
+                ref={sourceBoxRef}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, 'source')}
+                                  onClick={() => {
+                    if (selectedLanguage) {
+                      handleDropZoneClick('source');
+                    } else if (!sourceLanguage) {
+                      // Show language picker when clicking empty source box
                       const availableLang = Object.values(Language).find(lang => !targetLanguages.includes(lang));
                       if (availableLang) {
                         setSourceLanguage(availableLang);
                       }
                     }
                   }}
-                  className={`
+                                  className={`
                     w-full h-12 border-2 border-dashed rounded-lg p-2 flex items-center justify-center cursor-pointer transition-all duration-200
-                    ${sourceLanguage
+                    ${selectedLanguage
+                      ? 'border-yellow-400 bg-yellow-400/10 hover:border-yellow-300 hover:bg-yellow-400/20'
+                      : sourceLanguage
                       ? 'border-cyan-500 bg-cyan-500/10'
                       : 'border-slate-500 bg-slate-800/30 hover:border-cyan-400 hover:bg-slate-700/50'
                     }
                   `}
-                >
-                  {sourceLanguage ? (
-                    <div
+              >
+                {sourceLanguage ? (
+                                      <div
                       draggable
                       onDragStart={(e) => handleDragStart(e, sourceLanguage, 'source')}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleLanguageClick(sourceLanguage, 'target');
+                        handleLanguageClick(sourceLanguage, 'source');
                       }}
-                      className="cursor-pointer bg-cyan-600 text-white px-3 py-1.5 rounded-lg font-medium text-sm hover:bg-cyan-700 transition-all duration-200 transform hover:scale-105"
-                      title="Click to move to target languages or drag to move"
+                      className={`cursor-pointer px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-200 transform hover:scale-105 ${
+                        selectedLanguage?.language === sourceLanguage && selectedLanguage?.source === 'source'
+                          ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                          : 'bg-cyan-600 text-white hover:bg-cyan-700'
+                      }`}
+                      title="Click to select this language, then click where to move it"
                     >
                       {sourceLanguage}
                     </div>
+                                  ) : selectedLanguage ? (
+                    <p className="text-yellow-400 text-xs text-center font-medium">Drop {selectedLanguage.language} here</p>
                   ) : (
                     <p className="text-slate-500 text-xs text-center">Click or drag</p>
                   )}
-                </div>
               </div>
+            </div>
 
-              {/* Target Languages Box - Takes 2/3 on medium+ screens */}
-              <div className="md:col-span-2">
-                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            {/* Target Languages Section */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Target Languages ({targetLanguages.length} selected)
                 </h4>
-                <div
-                  ref={targetBoxRef}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, 'target')}
-                  onClick={() => {
-                    // Show language picker when clicking empty target box
-                    if (targetLanguages.length === 0) {
+                <div className="w-6 h-6 flex items-center justify-center">
+                  {targetLanguages.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setTargetLanguages([])}
+                      disabled={isLoading}
+                      className="inline-flex items-center justify-center p-1.5 text-xs text-slate-400 hover:text-slate-300 hover:bg-slate-700/50 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1 focus:ring-offset-slate-800"
+                      title="Clear all target languages"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div
+                ref={targetBoxRef}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, 'target')}
+                                  onClick={() => {
+                    if (selectedLanguage) {
+                      handleDropZoneClick('target');
+                    } else if (targetLanguages.length === 0) {
+                      // Show language picker when clicking empty target box
                       const availableLang = Object.values(Language).find(lang => lang !== sourceLanguage);
                       if (availableLang) {
                         setTargetLanguages([availableLang]);
                       }
                     }
                   }}
-                  className={`
-                    min-h-[60px] border-2 border-dashed rounded-lg p-2 transition-all duration-200 cursor-pointer
-                    ${targetLanguages.length > 0
-                      ? 'border-purple-500 bg-purple-500/10'
-                      : 'border-slate-500 bg-slate-800/30 hover:border-purple-400 hover:bg-slate-700/50'
-                    }
-                  `}
-                >
-                  {targetLanguages.length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5">
-                      {targetLanguages.map((lang, index) => (
-                        <div
-                          key={lang}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, lang, 'target', index)}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleLanguageClick(lang, 'source');
-                          }}
-                          className="cursor-pointer bg-purple-600 text-white px-2.5 py-1.5 rounded-lg font-medium text-xs hover:from-purple-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105"
-                          title="Click to move to source language or drag to move"
-                        >
-                          {lang}
-                        </div>
-                      ))}
-                    </div>
+                className={`
+                  min-h-[60px] border-2 border-dashed rounded-lg p-2 transition-all duration-200 cursor-pointer
+                  ${selectedLanguage
+                    ? 'border-yellow-400 bg-yellow-400/10 hover:border-yellow-300 hover:bg-yellow-400/20'
+                    : targetLanguages.length > 0
+                    ? 'border-purple-500 bg-purple-500/10'
+                    : 'border-slate-500 bg-slate-800/30 hover:border-purple-400 hover:bg-slate-700/50'
+                  }
+                `}
+              >
+                {targetLanguages.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {targetLanguages.map((lang, index) => (
+                      <div
+                        key={lang}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, lang, 'target', index)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLanguageClick(lang, 'target', index);
+                        }}
+                        className={`cursor-pointer px-2.5 py-1.5 rounded-lg font-medium text-xs transition-all duration-200 transform hover:scale-105 ${
+                          selectedLanguage?.language === lang && selectedLanguage?.source === 'target' && selectedLanguage?.index === index
+                            ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                            : 'bg-purple-600 text-white'
+                        }`}
+                        title="Click to select this language, then click where to move it"
+                      >
+                        {lang}
+                      </div>
+                    ))}
+                  </div>
+                                  ) : selectedLanguage ? (
+                    <p className="text-yellow-400 text-xs text-center font-medium">Drop {selectedLanguage.language} here</p>
                   ) : (
                     <p className="text-slate-500 text-xs text-center">Click or drag languages here</p>
                   )}
-                </div>
               </div>
             </div>
           </div>

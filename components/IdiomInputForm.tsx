@@ -84,6 +84,30 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   const handleLanguageClick = (language: Language, source: 'pool' | 'source' | 'target', index?: number) => {
     // If no language is selected, select this one
     if (!selectedLanguage) {
+      // Check if a drop zone is ready to receive a language
+      if (clickedDropZone === 'source' && !sourceLanguage) {
+        // Place language in source drop zone
+        if (source === 'target') {
+          // Remove from target languages
+          const newTargets = targetLanguages.filter((_, i) => i !== index);
+          setTargetLanguages(newTargets);
+        }
+        setSourceLanguage(language);
+        setClickedDropZone(null);
+        return;
+      } else if (clickedDropZone === 'target') {
+        // Place language in target drop zone
+        if (source === 'source') {
+          // Moving from source to target
+          setSourceLanguage(null);
+        }
+        if (!targetLanguages.includes(language)) {
+          setTargetLanguages([...targetLanguages, language]);
+        }
+        setClickedDropZone(null);
+        return;
+      }
+
       setSelectedLanguage({ language, source, index });
       return;
     }
@@ -165,7 +189,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
             }
           }}
           className={`
-            w-full h-12 border-2 border-dashed rounded-lg p-2 flex items-center justify-center cursor-pointer transition-all duration-200
+            w-auto min-w-[120px] max-w-[200px] h-12 border-2 border-dashed rounded-lg p-2 flex items-center justify-center cursor-pointer transition-all duration-200
             ${selectedLanguage
               ? 'border-yellow-400 bg-yellow-400/10 hover:border-yellow-300 hover:bg-yellow-400/20'
               : clickedDropZone === 'source' && !sourceLanguage
@@ -184,7 +208,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                 e.stopPropagation();
                 handleLanguageClick(sourceLanguage, 'source');
               }}
-              className={`cursor-pointer px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-200 transform hover:scale-105 ${
+              className={`cursor-pointer px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-200 transform hover:scale-105 ${
                 selectedLanguage?.language === sourceLanguage && selectedLanguage?.source === 'source'
                   ? 'bg-yellow-500 text-white hover:bg-yellow-600'
                   : 'bg-cyan-600 text-white hover:bg-cyan-700'

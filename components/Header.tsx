@@ -41,7 +41,7 @@ const Header: React.FC = () => {
         {/* Help Icon - Upper Right */}
         <button
           onClick={() => setIsHelpOpen(true)}
-          className="absolute top-0 right-0 p-2 text-slate-400 hover:text-white transition-colors"
+          className="absolute top-0 right-0 p-2 text-slate-500 hover:text-slate-300 transition-colors opacity-60 hover:opacity-100"
           aria-label="Help and Information"
           title="Help and Information"
         >

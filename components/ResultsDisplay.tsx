@@ -45,14 +45,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
         >
           Cultural Equivalents
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="flex flex-wrap gap-4 sm:gap-6 justify-center">
             {resultEntries.map(([langKey, data]) => (
-                <ResultCard
-                    key={langKey}
-                    language={langKey.charAt(0).toUpperCase() + langKey.slice(1)}
-                    data={data}
-                    borderColor={languageColors[langKey.toLowerCase()] || 'border-slate-500'}
-                />
+                <div className="w-full sm:w-80 lg:w-96">
+                    <ResultCard
+                        key={langKey}
+                        language={langKey.charAt(0).toUpperCase() + langKey.slice(1)}
+                        data={data}
+                        borderColor={languageColors[langKey.toLowerCase()] || 'border-slate-500'}
+                    />
+                </div>
             ))}
         </div>
     </div>

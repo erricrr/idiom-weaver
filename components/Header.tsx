@@ -35,10 +35,9 @@ const WeaverIcon: React.FC<{ className?: string }> = ({ className }) => (
 const Header: React.FC = () => {
   return (
     <header className="text-center px-4 sm:px-6">
-        <div className="flex justify-center items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-             <WeaverIcon className="w-10 h-10 sm:w-12 sm:h-12 text-cyan-400"/>
-             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-                Idiom Weaver
+        <div className="flex justify-center items-center mb-3 sm:mb-4">
+             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center">
+                Idiom Wea<WeaverIcon className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 text-cyan-400"/>er
             </h1>
         </div>
       <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-300 leading-relaxed">

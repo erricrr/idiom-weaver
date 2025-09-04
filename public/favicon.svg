@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <g transform="rotate(45 12 12)" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Horizontal Lines (drawn first, so they are in the back) -->
+        <path d="M4 8 H20" />
+        <path d="M4 12 H20" />
+        <path d="M4 16 H20" />
+
+        <!-- Vertical Lines (drawn second, with breaks to create weaving illusion) -->
+        <!-- V-Line 1 (Over, Under, Over) -->
+        <path d="M8 4 V11 M8 13 V20" />
+        <!-- V-Line 2 (Under, Over, Under) -->
+        <path d="M12 4 V7 M12 9 V15 M12 17 V20" />
+        <!-- V-Line 3 (Over, Under, Over) -->
+        <path d="M16 4 V11 M16 13 V20" />
+    </g>
+</svg>

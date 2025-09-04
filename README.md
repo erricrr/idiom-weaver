@@ -71,4 +71,4 @@ The app uses Google Translate TTS through a local Express server proxy to avoid 
 - Vite for build tooling (with proxy configuration)
 - Express.js for TTS proxy server
 - Google Translate TTS (free, no API key required)
-- Gemini AI for translations
+- Gemini API (gemini-2.5-flash) for translations

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import HelpModal from './HelpModal';
 
 const WeaverIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg
@@ -31,19 +32,41 @@ const WeaverIcon: React.FC<{ className?: string }> = ({ className }) => (
     </svg>
 );
 
-
 const Header: React.FC = () => {
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+
   return (
-    <header className="text-center px-4 sm:px-6">
+    <>
+      <header className="text-center px-4 sm:px-6 relative">
+        {/* Help Icon - Upper Right */}
+        <button
+          onClick={() => setIsHelpOpen(true)}
+          className="absolute top-0 right-0 p-2 text-slate-400 hover:text-white transition-colors"
+          aria-label="Help and Information"
+          title="Help and Information"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-6 h-6"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+          </svg>
+        </button>
+
         <div className="flex justify-center items-center mb-3 sm:mb-4">
              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center">
                 Idiom Wea<WeaverIcon className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 text-cyan-400"/>er
             </h1>
         </div>
-      <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-300 leading-relaxed">
-        Discover how different cultures express the same ideas. Enter an idiom, saying, or common phrase, choose your languages, and find its cross-cultural equivalents.
-      </p>
-    </header>
+        <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-300 leading-relaxed">
+          Discover how different cultures express the same ideas. Enter an idiom, saying, or common phrase, choose your languages, and find its cross-cultural equivalents.
+        </p>
+      </header>
+
+      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+    </>
   );
 };
 

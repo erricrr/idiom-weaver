@@ -109,7 +109,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
           value={idiomInput}
           onChange={handleIdiomInputChange}
           placeholder="e.g., Actions speak louder than words"
-          className="w-full bg-slate-900 border border-slate-600 rounded-md py-3 px-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition duration-200"
+          className="w-full bg-slate-900 border border-slate-600 rounded-md py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
         />
       </div>
 

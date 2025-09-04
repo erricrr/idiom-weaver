@@ -48,7 +48,7 @@ const App: React.FC = () => {
   }, [idiomInput, sourceLanguage, targetLanguages]);
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-slate-800 min-h-screen font-sans text-white p-4 sm:p-6 md:p-8 overflow-x-hidden">
+    <div className="min-h-screen font-sans text-white p-4 sm:p-6 md:p-8 overflow-x-hidden">
       <div className="max-w-4xl mx-auto relative">
         <Header />
         <main className="mt-8">

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ApiResult } from '../types';
 import ResultCard from './ResultCard';
 
@@ -19,6 +19,18 @@ const languageColors: Record<string, string> = {
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
   const resultEntries = Object.entries(results);
+  const culturalEquivalentsRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to Cultural Equivalents section when results appear
+  useEffect(() => {
+    if (culturalEquivalentsRef.current) {
+      culturalEquivalentsRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest'
+      });
+    }
+  }, [results]);
 
   if (resultEntries.length === 0) {
     return null;
@@ -26,7 +38,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
 
   return (
     <div className="animate-fade-in">
-        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-purple-400">Cultural Equivalents</h2>
+        <h2
+          ref={culturalEquivalentsRef}
+          id="cultural-equivalents"
+          className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-purple-400"
+        >
+          Cultural Equivalents
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {resultEntries.map(([langKey, data]) => (
                 <ResultCard

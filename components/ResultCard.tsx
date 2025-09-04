@@ -52,15 +52,33 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
           <div className="flex-grow">
             <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">{language}</h3>
             <div className="mb-4">
-              <p
-                className={`text-cyan-300 text-base sm:text-lg font-semibold underline decoration-dotted cursor-pointer ${
-                  isPlaying ? 'opacity-70' : 'hover:opacity-80'
-                }`}
-                onClick={handleTextClick}
-                title={`Click to hear "${data.idiom}" in ${language}`}
-              >
-                {data.idiom}
-              </p>
+              <div className="flex items-center gap-2">
+                <p
+                  className={`text-cyan-300 text-base sm:text-lg font-semibold underline decoration-dotted cursor-pointer ${
+                    isPlaying ? 'opacity-70' : 'hover:opacity-80'
+                  }`}
+                  onClick={handleTextClick}
+                  title={`Click to hear "${data.idiom}" in ${language}`}
+                >
+                  {data.idiom}
+                </p>
+                <button
+                  onClick={handleTextClick}
+                  disabled={isPlaying}
+                  className="p-1 text-cyan-300 hover:text-cyan-200 hover:bg-slate-700/50 rounded transition-all duration-200 disabled:opacity-50"
+                  title="Play audio"
+                >
+                  {isPlaying ? (
+                    <svg className="w-4 h-4 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    )}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -114,9 +132,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
             <div className="p-6 space-y-6">
               {/* Main Idiom with TTS */}
               <div className="text-center">
-                <h3 className="text-lg font-semibold text-slate-400 uppercase tracking-wider mb-3">
-                  Idiom
-                </h3>
+
                 <div className="flex items-center justify-center gap-3">
                   <p
                     className={`text-2xl sm:text-3xl font-bold text-cyan-300 underline decoration-dotted cursor-pointer ${

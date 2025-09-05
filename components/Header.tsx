@@ -16,18 +16,14 @@ const WeaverIcon: React.FC<{ className?: string }> = ({ className }) => (
             strokeLinecap="round"
             strokeLinejoin="round"
         >
-            {/* Horizontal Lines (drawn first, so they are in the back) */}
+            {/* Left-to-right lines (originally horizontal) */}
             <path d="M4 8 H20" />
             <path d="M4 12 H20" />
-            <path d="M4 16 H20" />
-
-            {/* Vertical Lines (drawn second, with breaks to create weaving illusion) */}
-            {/* V-Line 1 (Over, Under, Over) */}
-            <path d="M8 4 V11 M8 13 V20" />
-            {/* V-Line 2 (Under, Over, Under) */}
-            <path d="M12 4 V7 M12 9 V15 M12 17 V20" />
-            {/* V-Line 3 (Over, Under, Over) */}
-            <path d="M16 4 V11 M16 13 V20" />
+            <path d="M4 16 H20" stroke="#9b62f6" strokeWidth="3" />
+            {/* Right-to-left lines (originally vertical) */}
+            <path d="M8 4 V20" />
+            <path d="M12 4 V20" />
+            <path d="M16 4 V20" stroke="#9b62f6" strokeWidth="3"/>
         </g>
     </svg>
 );

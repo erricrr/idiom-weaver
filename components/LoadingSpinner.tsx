@@ -91,7 +91,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ isEntering = false }) =
             <div className="relative">
                 <WeaverIcon className="w-16 h-16 text-cyan-400" />
             </div>
-            <p className="text-slate-300 text-lg font-semibold">Searching across cultures...</p>
+            <p className="text-slate-300 text-lg font-semibold font-sans">Searching across cultures...</p>
         </div>
     );
 };

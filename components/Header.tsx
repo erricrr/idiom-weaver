@@ -56,7 +56,7 @@ const Header: React.FC = () => {
                 Idiom Wea<WeaverIcon className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 text-cyan-400"/>er
             </h1>
         </div>
-        <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-300 leading-relaxed">
+        <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-300 leading-relaxed font-sans">
           Discover how different cultures express the same ideas. Enter an idiom, saying, or common phrase, choose your languages, and find its cross-cultural equivalents.
         </p>
       </header>

@@ -105,7 +105,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
       <div>
         <label
           htmlFor="idiom-input"
-          className="block text-sm font-medium text-slate-300 mb-2"
+          className="block text-sm font-medium text-slate-300 mb-2 font-sans"
         >
           Enter an idiom, saying, or phrase
         </label>
@@ -131,7 +131,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                 type="button"
                 key={lang}
                 onClick={() => handleSourceLanguageClick(lang)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all font-sans
                   ${
                     sourceLanguage === lang
                       ? "bg-cyan-600 text-white ring-2 ring-cyan-600 ring-offset-2 ring-offset-slate-900"
@@ -157,7 +157,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                 type="button"
                 key={lang}
                 onClick={() => handleTargetLanguageToggle(lang)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all font-sans
                   ${
                     targetLanguages.includes(lang)
                       ? "bg-purple-500 text-white ring-2 ring-purple-500 ring-offset-2 ring-offset-slate-900"
@@ -177,7 +177,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-white bg-gradient-to-r from-cyan-600 to-purple-500 hover:from-cyan-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-cyan-500 shadow-lg"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-white bg-gradient-to-r from-cyan-600 to-purple-500 hover:from-cyan-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-cyan-500 shadow-lg font-sans"
           >
             {isLoading ? "Weaving..." : "Weave Idioms"}
           </button>

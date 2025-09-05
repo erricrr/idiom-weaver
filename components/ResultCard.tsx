@@ -54,7 +54,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
             <div className="mb-4">
               <div className="flex items-center gap-2">
                 <p
-                  className={`text-cyan-300 text-base sm:text-lg font-semibold underline decoration-dotted cursor-pointer ${
+                  className={`text-cyan-300 text-base sm:text-lg font-semibold underline decoration-dotted cursor-pointer font-sans ${
                     isPlaying ? 'opacity-70' : 'hover:opacity-80'
                   }`}
                   onClick={handleTextClick}
@@ -86,7 +86,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
           <div className="mt-auto">
             <button
               onClick={openModal}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-700/50 hover:bg-slate-600/50 rounded-md text-slate-300 text-sm font-medium transition-all duration-200 hover:text-white group"
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-700/50 hover:bg-slate-600/50 rounded-md text-slate-300 text-sm font-medium transition-all duration-200 hover:text-white group font-sans"
               aria-label="View detailed information about this translation"
             >
               <span>View Details</span>
@@ -135,7 +135,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
 
                 <div className="flex items-center justify-center gap-3">
                   <p
-                    className={`text-2xl sm:text-3xl font-bold text-cyan-300 underline decoration-dotted cursor-pointer ${
+                    className={`text-2xl sm:text-3xl font-bold text-cyan-300 underline decoration-dotted cursor-pointer font-sans ${
                       isPlaying ? 'opacity-70' : 'hover:opacity-80'
                     }`}
                     onClick={handleTextClick}
@@ -194,7 +194,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
             <div className="p-6 border-t border-slate-600/30 bg-slate-700/20 rounded-b-xl">
               <button
                 onClick={closeModal}
-                className="w-full py-3 px-4 bg-slate-600/50 hover:bg-slate-500/50 rounded-lg text-white font-medium transition-all duration-200 hover:bg-slate-500"
+                className="w-full py-3 px-4 bg-slate-600/50 hover:bg-slate-500/50 rounded-lg text-white font-medium transition-all duration-200 hover:bg-slate-500 font-sans"
               >
                 Close
               </button>

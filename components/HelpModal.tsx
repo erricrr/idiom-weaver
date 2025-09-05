@@ -16,13 +16,13 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             <h2 className="text-2xl font-bold text-white" style={{fontFamily: 'Varela Round, sans-serif'}}>About Idiom Weaver</h2>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white text-2xl font-bold leading-none"
+              className="text-slate-400 hover:text-white text-2xl font-bold leading-none font-sans"
             >
               ×
             </button>
           </div>
 
-          <div className="space-y-6 text-slate-300">
+          <div className="space-y-6 text-slate-300 font-sans">
             <div>
               <h3 className="text-xl font-semibold text-white mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>What is Idiom Weaver?</h3>
               <p className="leading-relaxed">

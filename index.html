@@ -8,9 +8,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Open+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <title>Cross-Cultural Idiom Translator</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Open Sans', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
         <style>
       html, body {
         background: linear-gradient(135deg, #111827 0%, #1e293b 100%);

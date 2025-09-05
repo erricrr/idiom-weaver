@@ -11,6 +11,7 @@ interface ResultCardProps {
 const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalAnimating, setIsModalAnimating] = useState(false);
   const [ttsService] = useState(() => new TTSService());
 
   // Prevent background scrolling when modal is open
@@ -40,8 +41,15 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
     }
   };
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openModal = () => {
+    setIsModalOpen(true);
+    setTimeout(() => setIsModalAnimating(true), 10);
+  };
+
+  const closeModal = () => {
+    setIsModalAnimating(false);
+    setTimeout(() => setIsModalOpen(false), 200);
+  };
 
   return (
     <>
@@ -110,8 +118,12 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
 
       {/* Modal Popup */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-800/95 rounded-xl shadow-2xl border border-slate-600/30 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-background backdrop-blur-sm transition-all duration-300 ${
+          isModalAnimating ? 'opacity-100' : 'opacity-0'
+        }`}>
+          <div className={`bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-600/20 max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out ${
+            isModalAnimating ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'
+          }`}>
             {/* Modal Header */}
             <div className="p-6 border-b border-slate-600/30 bg-slate-700/30 rounded-t-xl">
               <div className="flex items-center justify-between">

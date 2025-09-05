@@ -72,7 +72,7 @@ const App: React.FC = () => {
           <div className="mt-10 relative">
             {isLoading && <LoadingSpinner isEntering={!isTransitioning} />}
             {error && <ErrorAlert message={error} />}
-            {results && <ResultsDisplay results={results} />}
+            {results && <ResultsDisplay results={results} isExiting={isTransitioning} />}
             {!isLoading && !error && !results && <Welcome isExiting={isTransitioning} />}
           </div>
         </main>

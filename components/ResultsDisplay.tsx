@@ -4,6 +4,7 @@ import ResultCard from './ResultCard';
 
 interface ResultsDisplayProps {
   results: ApiResult;
+  isExiting?: boolean;
 }
 
 const languageColors: Record<string, string> = {
@@ -17,7 +18,7 @@ const languageColors: Record<string, string> = {
   dutch: 'border-orange-500', // Netherlands -> Orange
 };
 
-const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
+const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, isExiting = false }) => {
   const resultEntries = Object.entries(results).sort(([a], [b]) => a.localeCompare(b));
   const culturalEquivalentsRef = useRef<HTMLDivElement>(null);
 
@@ -37,7 +38,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
   }
 
   return (
-    <div className="animate-fade-in">
+    <div className={`transition-all duration-500 ease-in-out ${
+      isExiting
+        ? 'transform translate-y-full opacity-0'
+        : 'transform translate-y-0 opacity-100 animate-fade-in'
+    }`}>
         <h2
           ref={culturalEquivalentsRef}
           id="cultural-equivalents"

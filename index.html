@@ -70,6 +70,22 @@
         z-index: -1;
         pointer-events: none;
       }
+
+      /* Fade in animation for consistent transitions */
+      @keyframes fade-in {
+        0% {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .animate-fade-in {
+        animation: fade-in 0.5s ease-in-out;
+      }
     </style>
   <script type="importmap">
 {

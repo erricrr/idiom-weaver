@@ -73,11 +73,11 @@ const App: React.FC = () => {
       }
       setError(null);
       setIsTransitioning(true);
-      setResults(null);
       setTimeout(() => {
+        setResults(null);
         setIsLoading(true);
         setIsTransitioning(false);
-      }, 250);
+      }, 500);
       try {
         const response = await translateIdiom(idiomInput, sourceLanguage, targetLanguages);
         setResults(response);

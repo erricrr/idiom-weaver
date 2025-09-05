@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Language } from '../types';
 
 interface WelcomeProps {
   isExiting?: boolean;
@@ -17,8 +18,20 @@ const Welcome: React.FC<WelcomeProps> = ({ isExiting = false }) => {
       <p className="text-slate-400 max-w-lg mx-auto text-sm sm:text-base px-2 font-sans">
         Start by typing an idiom, saying, or phrase into the search box above, select its original language, choose your target languages, and click "Weave" to see how the same concept is expressed in other cultures.
       </p>
-      <div className="mt-4 sm:mt-6 text-slate-500 text-xs sm:text-sm">
-        <p className="font-sans"><span className="font-semibold">Example:</span> Try "break a leg" in English.</p>
+      <div className="mt-4 sm:mt-6 space-y-3">
+        <div className="text-slate-500 text-xs sm:text-sm">
+          <p className="font-sans"><span className="font-semibold">Example:</span> Try "break a leg" in English.</p>
+        </div>
+        <div className="text-slate-500 text-xs sm:text-sm">
+          <p className="font-sans mb-2"><span className="font-semibold">Supported Languages:</span></p>
+          <div className="flex flex-wrap gap-1 justify-center">
+            {Object.values(Language).sort().map((lang, index) => (
+              <span key={lang} className="px-2 py-1 bg-slate-700/50 rounded text-slate-300 text-xs font-sans">
+                {lang}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

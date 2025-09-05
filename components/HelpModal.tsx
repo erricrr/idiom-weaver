@@ -1,4 +1,5 @@
 import React from 'react';
+import { Language } from '../types';
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -40,6 +41,23 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                 <li>Choose one or more target languages you want to translate to</li>
                 <li>Click "Weave" to discover cultural equivalents</li>
               </ol>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>Supported Languages</h3>
+              <p className="leading-relaxed mb-3">
+                Idiom Weaver currently supports the following languages:
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {Object.values(Language).sort().map((lang) => (
+                  <div key={lang} className="px-3 py-2 bg-slate-700/50 rounded text-slate-300 text-sm font-sans text-center">
+                    {lang}
+                  </div>
+                ))}
+              </div>
+              <p className="leading-relaxed mt-3 text-sm text-slate-400">
+                You can translate from any of these languages to any other supported language.
+              </p>
             </div>
 
             <div>

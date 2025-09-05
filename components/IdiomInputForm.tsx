@@ -37,6 +37,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   const [isDetectingLanguage, setIsDetectingLanguage] = useState<boolean>(false);
   const [detectedLanguage, setDetectedLanguage] = useState<Language | null>(null);
   const [showLanguageOverride, setShowLanguageOverride] = useState<boolean>(false);
+  const [detectionFailed, setDetectionFailed] = useState<boolean>(false);
   const lastDetectedInput = useRef<string>('');
 
   // Auto-detect language when idiom input changes
@@ -48,6 +49,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
         setDetectedLanguage(null);
         setSourceLanguage(null);
         setIsDetectingLanguage(false);
+        setDetectionFailed(false);
         lastDetectedInput.current = '';
         return;
       }
@@ -58,6 +60,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
       }
 
       setIsDetectingLanguage(true);
+      setDetectionFailed(false);
 
       try {
         // Try Google's language detection first
@@ -73,10 +76,15 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
 
         if (detected) {
           setSourceLanguage(detected);
+          setDetectionFailed(false);
           // Auto-advance to target language selection
           if (currentStep === 2) {
             setCurrentStep(3);
           }
+        } else {
+          // Language detection failed - unsupported language
+          setDetectionFailed(true);
+          setSourceLanguage(null);
         }
       } catch (error) {
         console.error('Language detection failed:', error);
@@ -86,9 +94,13 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
         lastDetectedInput.current = trimmedInput;
         if (detected) {
           setSourceLanguage(detected);
+          setDetectionFailed(false);
           if (currentStep === 2) {
             setCurrentStep(3);
           }
+        } else {
+          setDetectionFailed(true);
+          setSourceLanguage(null);
         }
       } finally {
         setIsDetectingLanguage(false);
@@ -234,6 +246,30 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                     ))}
                   </div>
                 )}
+              </div>
+            ) : detectionFailed ? (
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2 text-amber-400">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm font-medium">Language not supported</span>
+                </div>
+                <div className="text-sm text-slate-400">
+                  We couldn't detect the language of your phrase. Please select the source language manually:
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                  {Object.values(Language).sort().map((lang) => (
+                    <button
+                      type="button"
+                      key={lang}
+                      onClick={() => handleSourceLanguageClick(lang)}
+                      className="px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center bg-slate-700 text-slate-300 hover:bg-slate-600"
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="text-sm text-slate-400">

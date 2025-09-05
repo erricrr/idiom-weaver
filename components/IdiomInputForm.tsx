@@ -201,7 +201,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="px-4 py-2 bg-cyan-600 text-white rounded-md text-sm font-medium font-sans">
+                    <div className="px-4 py-2 bg-cyan-600 text-white rounded-md text-sm font-medium font-sans ring-2 ring-cyan-600 ring-offset-2 ring-offset-slate-900">
                       {detectedLanguage}
                     </div>
                     <span className="text-xs text-slate-400">Auto-detected</span>

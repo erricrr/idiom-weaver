@@ -60,7 +60,7 @@ const WeaverIcon: React.FC<{ className?: string }> = ({ className }) => (
         <g
             transform="rotate(45 12 12)"
             fill="none"
-            stroke="currentColor"
+            stroke="#23d0f1"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -68,11 +68,11 @@ const WeaverIcon: React.FC<{ className?: string }> = ({ className }) => (
             {/* Left-to-right lines (originally horizontal) */}
             <path d="M4 8 H20" className="weave-line weave-line-1" />
             <path d="M4 12 H20" className="weave-line weave-line-2" />
-            <path d="M4 16 H20" stroke="#9b62f6" strokeWidth="3" />
+            <path d="M4 16 H20" stroke="#9b62f6" strokeWidth="2.5" />
             {/* Right-to-left lines (originally vertical) */}
             <path d="M8 4 V20" className="weave-line weave-line-4" />
             <path d="M12 4 V20" className="weave-line weave-line-5" />
-            <path d="M16 4 V20" stroke="#9b62f6" strokeWidth="3"/>
+            <path d="M16 4 V20" stroke="#9b62f6" strokeWidth="2.5"/>
         </g>
     </svg>
 );

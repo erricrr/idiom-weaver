@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Language, ApiResult } from './types';
 import { translateIdiom } from './services/geminiService';
@@ -17,8 +16,6 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
-
-  // Track last submitted values to detect duplicates
   const [lastSubmittedValues, setLastSubmittedValues] = useState<{
     idiom: string;
     sourceLanguage: Language | null;
@@ -27,96 +24,110 @@ const App: React.FC = () => {
   const [duplicateNotification, setDuplicateNotification] = useState<string | null>(null);
   const [isNotificationVisible, setIsNotificationVisible] = useState<boolean>(false);
 
-  // Clear duplicate notification when user changes input
   const clearDuplicateNotification = useCallback(() => {
-    if (duplicateNotification) {
-      setIsNotificationVisible(false);
-      // Wait for animation to complete before clearing the message
-      setTimeout(() => {
-        setDuplicateNotification(null);
-      }, 300);
-    }
-  }, [duplicateNotification]);
+    setIsNotificationVisible(false);
+    setTimeout(() => {
+      setDuplicateNotification(null);
+    }, 300);
+  }, []);
 
-  // Show duplicate notification with animation
   const showDuplicateNotification = useCallback((message: string) => {
     setDuplicateNotification(message);
     setIsNotificationVisible(true);
-
-    // Auto-hide after 4 seconds
     setTimeout(() => {
       clearDuplicateNotification();
     }, 4000);
   }, [clearDuplicateNotification]);
 
-  const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!idiomInput.trim()) {
-      setError('Please enter an idiom to translate.');
-      return;
-    }
-    if (!sourceLanguage) {
-      setError('Please select a source language.');
-      return;
-    }
-    if (targetLanguages.length === 0) {
-      setError('Please select at least one target language.');
-      return;
-    }
-
-    // Check for duplicate submission
-    if (lastSubmittedValues) {
-      const isDuplicate =
-        lastSubmittedValues.idiom.trim().toLowerCase() === idiomInput.trim().toLowerCase() &&
-        lastSubmittedValues.sourceLanguage === sourceLanguage &&
-        lastSubmittedValues.targetLanguages.length === targetLanguages.length &&
-        lastSubmittedValues.targetLanguages.every(lang => targetLanguages.includes(lang));
-
-      if (isDuplicate) {
-        showDuplicateNotification('✨ These idioms have already been woven! Try a different phrase or language combination.');
-        setError(null);
-        // Keep the existing results on screen - don't clear them!
+  const handleSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      if (!idiomInput.trim()) {
+        setError('Please enter an idiom to translate.');
         return;
       }
-    }
+      if (!sourceLanguage) {
+        setError('Please select a source language.');
+        return;
+      }
+      if (targetLanguages.length === 0) {
+        setError('Please select at least one target language.');
+        return;
+      }
 
-    // Clear any previous notifications
-    if (duplicateNotification) {
-      clearDuplicateNotification();
-    }
-    setError(null);
+      if (lastSubmittedValues) {
+        const isDuplicate =
+          lastSubmittedValues.idiom.trim().toLowerCase() === idiomInput.trim().toLowerCase() &&
+          lastSubmittedValues.sourceLanguage === sourceLanguage &&
+          lastSubmittedValues.targetLanguages.length === targetLanguages.length &&
+          lastSubmittedValues.targetLanguages.every((lang) => targetLanguages.includes(lang));
+        if (isDuplicate) {
+          showDuplicateNotification('✨ These idioms have already been woven! Try a different phrase or language combination.');
+          setError(null);
+          return;
+        }
+      }
 
-    // Store current values as last submitted
-    setLastSubmittedValues({
-      idiom: idiomInput.trim(),
-      sourceLanguage,
-      targetLanguages: [...targetLanguages]
-    });
-
-    setIsTransitioning(true);
-    setResults(null);
-
-    // Start the transition, then set loading after a brief delay
-    setTimeout(() => {
-      setIsLoading(true);
-      setIsTransitioning(false);
-    }, 250);
-
-    try {
-      const response = await translateIdiom(idiomInput, sourceLanguage, targetLanguages);
-      setResults(response);
-    } catch (err) {
-      console.error(err);
-      setError('Sorry, we couldn\'t find an equivalent for that idiom. Please try another one.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [idiomInput, sourceLanguage, targetLanguages, lastSubmittedValues]);
+      if (duplicateNotification) {
+        clearDuplicateNotification();
+      }
+      setError(null);
+      setLastSubmittedValues({
+        idiom: idiomInput.trim(),
+        sourceLanguage,
+        targetLanguages: [...targetLanguages],
+      });
+      setIsTransitioning(true);
+      setResults(null);
+      setTimeout(() => {
+        setIsLoading(true);
+        setIsTransitioning(false);
+      }, 250);
+      try {
+        const response = await translateIdiom(idiomInput, sourceLanguage, targetLanguages);
+        setResults(response);
+      } catch (err) {
+        console.error(err);
+        setError("Sorry, we couldn't find an equivalent for that idiom. Please try another one.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [idiomInput, sourceLanguage, targetLanguages, lastSubmittedValues, duplicateNotification, clearDuplicateNotification]
+  );
 
   return (
     <div className="min-h-screen font-sans text-white p-4 sm:p-6 md:p-8 overflow-x-hidden">
       <div className="max-w-4xl mx-auto relative">
         <Header />
+        {duplicateNotification && (
+  <div
+    className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 max-w-md px-4 py-3
+      bg-gradient-to-r from-pink-500/90 to-rose-500/90
+      backdrop-blur-md border border-pink-300/50 rounded-2xl shadow-2xl
+      transition-all duration-300 ease-in-out transform
+      ${isNotificationVisible
+        ? 'translate-y-0 opacity-100 scale-100'
+        : 'translate-y-8 opacity-0 scale-95'
+      }`}
+  >
+    <button
+      onClick={clearDuplicateNotification}
+      className="absolute top-2 right-2 text-pink-100 hover:text-white
+                 transition-colors duration-200 focus:outline-none
+                 focus:ring-2 focus:ring-white/40 rounded-full p-1"
+      aria-label="Close notification"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <p className="text-white text-sm font-semibold pr-6 text-center">
+      {duplicateNotification}
+    </p>
+  </div>
+)}
+
         <main className="mt-8">
           <IdiomInputForm
             idiomInput={idiomInput}
@@ -132,24 +143,6 @@ const App: React.FC = () => {
           <div className="mt-10 relative">
             {isLoading && <LoadingSpinner isEntering={!isTransitioning} />}
             {error && <ErrorAlert message={error} />}
-            {duplicateNotification && (
-              <div className={`fixed top-4 right-4 z-50 max-w-sm p-3 bg-gradient-to-r from-amber-500/90 to-orange-500/90 backdrop-blur-sm border border-amber-400/50 rounded-lg shadow-lg transition-all duration-300 ease-in-out ${
-                isNotificationVisible
-                  ? 'transform translate-x-0 opacity-100 scale-100'
-                  : 'transform translate-x-full opacity-0 scale-95'
-              }`}>
-                <button
-                  onClick={clearDuplicateNotification}
-                  className="absolute top-1 right-1 text-amber-100 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-300/50 rounded-full p-1"
-                  aria-label="Close notification"
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-                <p className="text-amber-50 text-sm font-medium pr-5">{duplicateNotification}</p>
-              </div>
-            )}
             {results && <ResultsDisplay results={results} isExiting={isTransitioning} />}
             {!isLoading && !error && !results && !duplicateNotification && <Welcome isExiting={isTransitioning} />}
           </div>

@@ -16,6 +16,7 @@ const App: React.FC = () => {
   const [results, setResults] = useState<ApiResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
 
   const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -32,9 +33,15 @@ const App: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
+    setIsTransitioning(true);
     setError(null);
     setResults(null);
+
+    // Start the transition, then set loading after a brief delay
+    setTimeout(() => {
+      setIsLoading(true);
+      setIsTransitioning(false);
+    }, 250);
 
     try {
       const response = await translateIdiom(idiomInput, sourceLanguage, targetLanguages);
@@ -62,11 +69,11 @@ const App: React.FC = () => {
             handleSubmit={handleSubmit}
             isLoading={isLoading}
           />
-          <div className="mt-10">
-            {isLoading && <LoadingSpinner />}
+          <div className="mt-10 relative">
+            {isLoading && <LoadingSpinner isEntering={!isTransitioning} />}
             {error && <ErrorAlert message={error} />}
             {results && <ResultsDisplay results={results} />}
-            {!isLoading && !error && !results && <Welcome />}
+            {!isLoading && !error && !results && <Welcome isExiting={isTransitioning} />}
           </div>
         </main>
       </div>

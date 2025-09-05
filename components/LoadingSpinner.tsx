@@ -77,9 +77,17 @@ const WeaverIcon: React.FC<{ className?: string }> = ({ className }) => (
     </svg>
 );
 
-const LoadingSpinner: React.FC = () => {
+interface LoadingSpinnerProps {
+  isEntering?: boolean;
+}
+
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ isEntering = false }) => {
     return (
-        <div className="flex flex-col items-center justify-center gap-4 py-8">
+        <div className={`flex flex-col items-center justify-center gap-4 py-8 transition-all duration-500 ease-in-out ${
+            isEntering
+                ? 'transform translate-y-0 opacity-100'
+                : 'transform -translate-y-full opacity-0'
+        }`}>
             <div className="relative">
                 <WeaverIcon className="w-16 h-16 text-cyan-400" />
             </div>

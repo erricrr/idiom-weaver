@@ -18,7 +18,7 @@ const languageColors: Record<string, string> = {
 };
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
-  const resultEntries = Object.entries(results);
+  const resultEntries = Object.entries(results).sort(([a], [b]) => a.localeCompare(b));
   const culturalEquivalentsRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to Cultural Equivalents section when results appear

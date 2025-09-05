@@ -103,7 +103,7 @@ const App: React.FC = () => {
             });
           } catch (err) {
             console.error(err);
-            setError("Sorry, we couldn't find an equivalent for the new languages. Please try again.");
+            setError("Sorry, we hit a snag. Please try again.");
           } finally {
             setIsLoading(false);
           }
@@ -132,7 +132,7 @@ const App: React.FC = () => {
         });
       } catch (err) {
         console.error(err);
-        setError("Sorry, we couldn't find an equivalent for that idiom. Please try another one.");
+        setError("Sorry, we hit a snag. Please try again.");
       } finally {
         setIsLoading(false);
       }

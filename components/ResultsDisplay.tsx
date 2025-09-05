@@ -59,6 +59,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, isExiting = fa
                         language={langKey.charAt(0).toUpperCase() + langKey.slice(1)}
                         data={data}
                         borderColor={languageColors[langKey.toLowerCase()] || 'border-slate-500'}
+                        isSingleResult={resultEntries.length === 1}
                     />
                 </div>
             ))}

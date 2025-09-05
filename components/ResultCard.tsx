@@ -6,9 +6,10 @@ interface ResultCardProps {
   language: string;
   data: IdiomTranslation;
   borderColor: string;
+  isSingleResult?: boolean;
 }
 
-const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) => {
+const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor, isSingleResult = false }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalAnimating, setIsModalAnimating] = useState(false);
@@ -120,8 +121,10 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
       {isModalOpen && (
         <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-background backdrop-blur-sm transition-all duration-300 ${
           isModalAnimating ? 'opacity-100' : 'opacity-0'
-        }`}>
-          <div className={`bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-600/20 max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out ${
+        } ${isSingleResult ? 'items-start pt-20' : ''}`}>
+          <div className={`bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-600/20 max-w-2xl w-full overflow-y-auto transform transition-all duration-300 ease-out ${
+            isSingleResult ? 'max-h-[70vh]' : 'max-h-[90vh]'
+          } ${
             isModalAnimating ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'
           }`}>
             {/* Modal Header */}

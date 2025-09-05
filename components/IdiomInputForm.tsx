@@ -179,7 +179,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
             disabled={isLoading}
             className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-white bg-gradient-to-r from-cyan-600 to-purple-500 hover:from-cyan-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-cyan-500 shadow-lg font-sans"
           >
-            {isLoading ? "Weaving..." : "Weave Idioms"}
+            {isLoading ? "Weaving..." : "Weave"}
           </button>
         </div>
       )}

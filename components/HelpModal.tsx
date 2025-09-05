@@ -38,7 +38,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                 <li>Enter an idiom, saying, or common phrase in the input field</li>
                 <li>Select the language your phrase is in</li>
                 <li>Choose one or more target languages you want to translate to</li>
-                <li>Click "Weave Idioms" to discover cultural equivalents</li>
+                <li>Click "Weave" to discover cultural equivalents</li>
               </ol>
             </div>
 

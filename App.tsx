@@ -72,11 +72,6 @@ const App: React.FC = () => {
         clearDuplicateNotification();
       }
       setError(null);
-      setLastSubmittedValues({
-        idiom: idiomInput.trim(),
-        sourceLanguage,
-        targetLanguages: [...targetLanguages],
-      });
       setIsTransitioning(true);
       setResults(null);
       setTimeout(() => {
@@ -86,6 +81,12 @@ const App: React.FC = () => {
       try {
         const response = await translateIdiom(idiomInput, sourceLanguage, targetLanguages);
         setResults(response);
+        // Only update lastSubmittedValues after successful API response
+        setLastSubmittedValues({
+          idiom: idiomInput.trim(),
+          sourceLanguage,
+          targetLanguages: [...targetLanguages],
+        });
       } catch (err) {
         console.error(err);
         setError("Sorry, we couldn't find an equivalent for that idiom. Please try another one.");

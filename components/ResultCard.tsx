@@ -119,18 +119,18 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor, is
 
       {/* Modal Popup */}
       {isModalOpen && (
-        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-background backdrop-blur-sm transition-all duration-300 ${
+        <div className={`fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-8 sm:pt-4 bg-background backdrop-blur-sm transition-all duration-300 ${
           isModalAnimating ? 'opacity-100' : 'opacity-0'
-        } ${isSingleResult ? 'items-start pt-20' : ''}`}>
+        }`}>
           <div className={`bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-600/20 max-w-2xl w-full overflow-y-auto transform transition-all duration-300 ease-out ${
-            isSingleResult ? 'max-h-[70vh]' : 'max-h-[90vh]'
+            isSingleResult ? 'max-h-[70vh]' : 'max-h-[85vh] sm:max-h-[90vh]'
           } ${
             isModalAnimating ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'
           }`}>
             {/* Modal Header */}
-            <div className="p-6 border-b border-slate-600/30 bg-slate-700/30 rounded-t-xl">
+            <div className="p-4 sm:p-6 border-b border-slate-600/30 bg-slate-700/30 rounded-t-xl">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-white" style={{fontFamily: 'Varela Round, sans-serif'}}>{language}</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-white" style={{fontFamily: 'Varela Round, sans-serif'}}>{language}</h2>
                 <button
                   onClick={closeModal}
                   className="text-slate-400 hover:text-white transition-colors duration-200 p-2 hover:bg-slate-700/50 rounded-lg"
@@ -144,7 +144,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor, is
             </div>
 
             {/* Modal Content */}
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
               {/* Main Idiom with TTS */}
               <div className="text-center">
 
@@ -195,7 +195,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor, is
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 border-t border-slate-600/30 bg-slate-700/20 rounded-b-xl">
+            <div className="p-4 sm:p-6 border-t border-slate-600/30 bg-slate-700/20 rounded-b-xl">
               <button
                 onClick={closeModal}
                 className="w-full py-3 px-4 bg-slate-600/50 hover:bg-slate-500/50 rounded-lg text-white font-medium transition-all duration-200 hover:bg-slate-500 font-sans"

@@ -273,13 +273,38 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
       {/* Step 4: Submit Button - Only visible after target languages are selected */}
       {(currentStep >= 4 || hasCompletedFlow) && (
         <div className={`text-center ${!hasCompletedFlow && currentStep === 4 ? "animate-in slide-in-from-top-2 duration-300" : ""}`}>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-white bg-gradient-to-r from-cyan-600 to-purple-500 hover:from-cyan-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-cyan-500 shadow-lg font-sans"
+          <div
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isLoading) {
+                // Trigger form submission manually
+                const form = e.currentTarget.closest('form');
+                if (form) {
+                  form.requestSubmit();
+                }
+              }
+            }}
+            className={`w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-white bg-gradient-to-r from-cyan-600 to-purple-500 hover:from-cyan-700 hover:to-purple-700 transition-all duration-300 shadow-lg font-sans cursor-pointer select-none ${
+              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            role="button"
+            tabIndex={0}
+            aria-label={isLoading ? "Weaving idioms, please wait" : "Weave idioms"}
+            aria-disabled={isLoading}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (!isLoading) {
+                  const form = e.currentTarget.closest('form');
+                  if (form) {
+                    form.requestSubmit();
+                  }
+                }
+              }
+            }}
           >
             {isLoading ? "Weaving..." : "Weave"}
-          </button>
+          </div>
         </div>
       )}
     </form>

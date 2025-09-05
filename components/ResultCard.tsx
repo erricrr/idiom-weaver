@@ -113,7 +113,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-slate-800/95 rounded-xl shadow-2xl border border-slate-600/30 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className={`p-6 border-b border-slate-600/30 ${borderColor} bg-slate-700/30 rounded-t-xl`}>
+            <div className="p-6 border-b border-slate-600/30 bg-slate-700/30 rounded-t-xl">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-white" style={{fontFamily: 'Varela Round, sans-serif'}}>{language}</h2>
                 <button

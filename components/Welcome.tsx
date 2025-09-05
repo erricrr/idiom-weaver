@@ -3,7 +3,8 @@ import React from 'react';
 
 const Welcome: React.FC = () => {
   return (
-    <div className="text-center p-4 sm:p-8 bg-slate-800/30 border border-slate-700 rounded-xl animate-fade-in">
+    <div className="text-center p-4 sm:p-8 bg-slate-800/30 rounded-xl animate-fade-in relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-300 via-cyan-400 to-purple-400"></div>
       <h2 className="text-xl sm:text-2xl font-bold text-slate-200 mb-3 sm:mb-4">Welcome to Idiom Weaver!</h2>
       <p className="text-slate-400 max-w-lg mx-auto text-sm sm:text-base px-2">
         Start by typing an idiom, saying, or phrase into the search box above, select its original language, choose your target languages, and click "Weave Idioms" to see how the same concept is expressed in other cultures.

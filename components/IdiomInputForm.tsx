@@ -93,7 +93,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className=" p-6 rounded-xl space-y-6"
+      className="p-6 rounded-xl space-y-6"
     >
       {/* Step 1: Idiom Input - Always visible */}
       <div>
@@ -109,7 +109,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
           value={idiomInput}
           onChange={handleIdiomInputChange}
           placeholder="e.g., Actions speak louder than words"
-          className="w-full bg-cyan-400 border border-slate-600 rounded-md py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+          className="w-full bg-slate-900 border border-slate-600 rounded-md py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
         />
       </div>
 
@@ -146,7 +146,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
             Target Languages ({targetLanguages.length} selected)
           </h4>
           <div className="flex flex-wrap gap-2">
-            {Object.values(Language).sort().map((lang) => (
+            {Object.values(Language).map((lang) => (
               <button
                 type="button"
                 key={lang}

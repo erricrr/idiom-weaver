@@ -58,6 +58,10 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                 Idiom Weaver is powered by Gemini (gemini-2.5-flash), which provides intelligent and accurate
                 cross-cultural idiom translations and cultural context.
               </p>
+              <p className="leading-relaxed">
+                Text-to-speech functionality is provided by Google Translate's TTS API, enabling you to hear
+                how the idioms sound in their native languages.
+              </p>
             </div>
 
             <div>

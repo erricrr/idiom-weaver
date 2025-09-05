@@ -11,7 +11,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 export const translateIdiom = async (idiom: string, sourceLanguage: Language, targetLanguages: Language[]): Promise<ApiResult> => {
   const targetLanguageList = targetLanguages.join(', ');
   const prompt = `
-    You are an expert in linguistics and cultural idioms, proverbs, and common sayings. 
+    You are an expert in linguistics and cultural idioms, proverbs, and common sayings.
     The user has provided the phrase "${idiom}" from the ${sourceLanguage} language.
     Your task is to find the conceptual equivalent idioms or phrases in the following languages: ${targetLanguageList}.
     For each of the requested languages (${targetLanguageList}), you must provide:
@@ -61,4 +61,28 @@ export const translateIdiom = async (idiom: string, sourceLanguage: Language, ta
     console.error("Gemini API call failed:", error);
     throw new Error("Failed to get idiom translations from the API.");
   }
+};
+
+export const translateIdiomPartial = async (
+  idiom: string,
+  sourceLanguage: Language,
+  newTargetLanguages: Language[],
+  existingResults: ApiResult
+): Promise<ApiResult> => {
+  // If no new languages to translate, return existing results
+  if (newTargetLanguages.length === 0) {
+    return existingResults;
+  }
+
+  console.log(`🔄 Partial re-weaving: Translating only ${newTargetLanguages.length} new language(s): ${newTargetLanguages.join(', ')}`);
+  console.log(`💰 API call savings: Skipping ${Object.keys(existingResults).length} already-translated language(s)`);
+
+  // Get translations for only the new languages
+  const newTranslations = await translateIdiom(idiom, sourceLanguage, newTargetLanguages);
+
+  // Merge new translations with existing results
+  return {
+    ...existingResults,
+    ...newTranslations
+  };
 };

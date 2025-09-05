@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Language, ApiResult } from './types';
-import { translateIdiom } from './services/geminiService';
+import { translateIdiom, translateIdiomPartial } from './services/geminiService';
 import Header from './components/Header';
 import IdiomInputForm from './components/IdiomInputForm';
 import ResultsDisplay from './components/ResultsDisplay';
@@ -56,14 +56,57 @@ const App: React.FC = () => {
       }
 
       if (lastSubmittedValues) {
-        const isDuplicate =
+        const isExactDuplicate =
           lastSubmittedValues.idiom.trim().toLowerCase() === idiomInput.trim().toLowerCase() &&
           lastSubmittedValues.sourceLanguage === sourceLanguage &&
           lastSubmittedValues.targetLanguages.length === targetLanguages.length &&
           lastSubmittedValues.targetLanguages.every((lang) => targetLanguages.includes(lang));
-        if (isDuplicate) {
+
+        if (isExactDuplicate) {
           showDuplicateNotification('✨ These idioms have already been woven! Try a different phrase or language combination.');
           setError(null);
+          return;
+        }
+
+        // Check if this is a partial re-weave (same idiom + source, but with additional target languages)
+        const isPartialReweave =
+          lastSubmittedValues.idiom.trim().toLowerCase() === idiomInput.trim().toLowerCase() &&
+          lastSubmittedValues.sourceLanguage === sourceLanguage &&
+          targetLanguages.length > lastSubmittedValues.targetLanguages.length &&
+          lastSubmittedValues.targetLanguages.every((lang) => targetLanguages.includes(lang));
+
+        if (isPartialReweave) {
+          // Find the new target languages that need to be translated
+          const newTargetLanguages = targetLanguages.filter(lang => !lastSubmittedValues.targetLanguages.includes(lang));
+
+          setError(null);
+          setIsTransitioning(true);
+          setTimeout(() => {
+            setIsLoading(true);
+            setIsTransitioning(false);
+          }, 500);
+
+          try {
+            // Use partial translation to only translate new languages
+            const response = await translateIdiomPartial(
+              idiomInput,
+              sourceLanguage,
+              newTargetLanguages,
+              results || {}
+            );
+            setResults(response);
+            // Update lastSubmittedValues to include all target languages
+            setLastSubmittedValues({
+              idiom: idiomInput.trim(),
+              sourceLanguage,
+              targetLanguages: [...targetLanguages],
+            });
+          } catch (err) {
+            console.error(err);
+            setError("Sorry, we couldn't find an equivalent for the new languages. Please try again.");
+          } finally {
+            setIsLoading(false);
+          }
           return;
         }
       }

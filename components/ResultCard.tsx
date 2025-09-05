@@ -177,17 +177,6 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
                 </h4>
                 <p className="text-slate-200 text-base leading-relaxed">{data.explanation}</p>
               </div>
-
-              {/* Usage Context */}
-              <div>
-                <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2" style={{fontFamily: 'Varela Round, sans-serif'}}>
-                  Usage Context
-                </h4>
-                <p className="text-slate-300 text-sm">
-                  This idiom is commonly used in {language} culture and can be applied in various situations
-                  where you want to express the same sentiment as the original English phrase.
-                </p>
-              </div>
             </div>
 
             {/* Modal Footer */}

@@ -119,55 +119,58 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
         />
       </div>
 
-      {/* Step 2: Source Language - Only visible after idiom is entered */}
+      {/* Language Selection - Side by side layout for better space efficiency */}
       {(currentStep >= 2 || hasCompletedFlow) && (
-        <div className={!hasCompletedFlow && currentStep === 2 ? "animate-in slide-in-from-top-2 duration-300" : ""}>
-          <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2" style={{fontFamily: 'Varela Round, sans-serif'}}>
-            Source Language
-          </h4>
-          <div className="flex flex-wrap gap-3">
-            {Object.values(Language).sort().map((lang) => (
-              <button
-                type="button"
-                key={lang}
-                onClick={() => handleSourceLanguageClick(lang)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all font-sans
-                  ${
-                    sourceLanguage === lang
-                      ? "bg-cyan-600 text-white ring-2 ring-cyan-600 ring-offset-2 ring-offset-slate-900"
-                      : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                  }`}
-              >
-                {lang}
-              </button>
-            ))}
+        <div className={`space-y-6 ${!hasCompletedFlow && currentStep === 2 ? "animate-in slide-in-from-top-2 duration-300" : ""}`}>
+          {/* Source Language Section */}
+          <div>
+            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>
+              Source Language
+            </h4>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+              {Object.values(Language).sort().map((lang) => (
+                <button
+                  type="button"
+                  key={lang}
+                  onClick={() => handleSourceLanguageClick(lang)}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center
+                    ${
+                      sourceLanguage === lang
+                        ? "bg-cyan-600 text-white ring-2 ring-cyan-600 ring-offset-2 ring-offset-slate-900"
+                        : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                    }`}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* Step 3: Target Languages - Only visible after source language is selected */}
-      {(currentStep >= 3 || hasCompletedFlow) && (
-        <div className={!hasCompletedFlow && currentStep === 3 ? "animate-in slide-in-from-top-2 duration-300" : ""}>
-          <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2" style={{fontFamily: 'Varela Round, sans-serif'}}>
-            Target Languages ({targetLanguages.length} selected)
-          </h4>
-          <div className="flex flex-wrap gap-3">
-            {Object.values(Language).sort().map((lang) => (
-              <button
-                type="button"
-                key={lang}
-                onClick={() => handleTargetLanguageToggle(lang)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all font-sans
-                  ${
-                    targetLanguages.includes(lang)
-                      ? "bg-purple-500 text-white ring-2 ring-purple-500 ring-offset-2 ring-offset-slate-900"
-                      : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                  }`}
-              >
-                {lang}
-              </button>
-            ))}
-          </div>
+          {/* Target Languages Section - Only visible after source language is selected */}
+          {(currentStep >= 3 || hasCompletedFlow) && (
+            <div className={!hasCompletedFlow && currentStep === 3 ? "animate-in slide-in-from-top-2 duration-300" : ""}>
+              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>
+                Target Languages ({targetLanguages.length} selected)
+              </h4>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                {Object.values(Language).sort().map((lang) => (
+                  <button
+                    type="button"
+                    key={lang}
+                    onClick={() => handleTargetLanguageToggle(lang)}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center
+                      ${
+                        targetLanguages.includes(lang)
+                          ? "bg-purple-500 text-white ring-2 ring-purple-500 ring-offset-2 ring-offset-slate-900"
+                          : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                      }`}
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

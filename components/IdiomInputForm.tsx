@@ -120,7 +120,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
             Source Language
           </h4>
           <div className="flex flex-wrap gap-2">
-            {Object.values(Language).map((lang) => (
+            {Object.values(Language).sort().map((lang) => (
               <button
                 type="button"
                 key={lang}
@@ -146,7 +146,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
             Target Languages ({targetLanguages.length} selected)
           </h4>
           <div className="flex flex-wrap gap-2">
-            {Object.values(Language).map((lang) => (
+            {Object.values(Language).sort().map((lang) => (
               <button
                 type="button"
                 key={lang}

@@ -1,10 +1,17 @@
 import { Language } from '../types';
 
 // Simple language detection using Google Translate's language detection
-export const detectLanguage = async (text: string): Promise<Language | null> => {
+export const detectLanguage = async (text: string, timeoutMs: number = 3000): Promise<Language | null> => {
   try {
-    // Use Google Translate's language detection API
-    const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`);
+    // Create a timeout promise
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Language detection timeout')), timeoutMs);
+    });
+
+    // Use Google Translate's language detection API with timeout
+    const fetchPromise = fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`);
+
+    const response = await Promise.race([fetchPromise, timeoutPromise]);
 
     if (!response.ok) {
       throw new Error('Language detection failed');

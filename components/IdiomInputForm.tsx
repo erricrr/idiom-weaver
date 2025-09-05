@@ -38,6 +38,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   const [detectedLanguage, setDetectedLanguage] = useState<Language | null>(null);
   const [showLanguageOverride, setShowLanguageOverride] = useState<boolean>(false);
   const [detectionFailed, setDetectionFailed] = useState<boolean>(false);
+  const [detectionTimeout, setDetectionTimeout] = useState<boolean>(false);
   const lastDetectedInput = useRef<string>('');
 
   // Auto-detect language when idiom input changes
@@ -50,6 +51,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
         setSourceLanguage(null);
         setIsDetectingLanguage(false);
         setDetectionFailed(false);
+        setDetectionTimeout(false);
         lastDetectedInput.current = '';
         return;
       }
@@ -61,10 +63,11 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
 
       setIsDetectingLanguage(true);
       setDetectionFailed(false);
+      setDetectionTimeout(false);
 
       try {
-        // Try Google's language detection first
-        let detected = await detectLanguage(trimmedInput);
+        // Try Google's language detection first with 3-second timeout
+        let detected = await detectLanguage(trimmedInput, 3000);
 
         // Fallback to heuristic detection if Google detection fails
         if (!detected) {
@@ -77,6 +80,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
         if (detected) {
           setSourceLanguage(detected);
           setDetectionFailed(false);
+          setDetectionTimeout(false);
           // Auto-advance to target language selection
           if (currentStep === 2) {
             setCurrentStep(3);
@@ -84,23 +88,34 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
         } else {
           // Language detection failed - unsupported language
           setDetectionFailed(true);
+          setDetectionTimeout(false);
           setSourceLanguage(null);
         }
       } catch (error) {
         console.error('Language detection failed:', error);
-        // Fallback to heuristic detection
-        const detected = detectLanguageHeuristic(trimmedInput);
-        setDetectedLanguage(detected);
-        lastDetectedInput.current = trimmedInput;
-        if (detected) {
-          setSourceLanguage(detected);
+
+        // Check if it's a timeout error
+        if (error instanceof Error && error.message === 'Language detection timeout') {
+          setDetectionTimeout(true);
           setDetectionFailed(false);
-          if (currentStep === 2) {
-            setCurrentStep(3);
-          }
-        } else {
-          setDetectionFailed(true);
           setSourceLanguage(null);
+        } else {
+          // Other error - try heuristic detection
+          const detected = detectLanguageHeuristic(trimmedInput);
+          setDetectedLanguage(detected);
+          lastDetectedInput.current = trimmedInput;
+          if (detected) {
+            setSourceLanguage(detected);
+            setDetectionFailed(false);
+            setDetectionTimeout(false);
+            if (currentStep === 2) {
+              setCurrentStep(3);
+            }
+          } else {
+            setDetectionFailed(true);
+            setDetectionTimeout(false);
+            setSourceLanguage(null);
+          }
         }
       } finally {
         setIsDetectingLanguage(false);
@@ -246,6 +261,30 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                     ))}
                   </div>
                 )}
+              </div>
+            ) : detectionTimeout ? (
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2 text-orange-400">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm font-medium">Detection taking too long</span>
+                </div>
+                <div className="text-sm text-slate-400">
+                  Language detection is taking longer than expected. Please select the source language manually:
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                  {Object.values(Language).sort().map((lang) => (
+                    <button
+                      type="button"
+                      key={lang}
+                      onClick={() => handleSourceLanguageClick(lang)}
+                      className="px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center bg-slate-700 text-slate-300 hover:bg-slate-600"
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : detectionFailed ? (
               <div className="space-y-3">

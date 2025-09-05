@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { IdiomTranslation } from '../types';
 import { TTSService } from '../services/ttsService';
 
@@ -118,8 +119,8 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor, is
       </div>
 
       {/* Modal Popup */}
-      {isModalOpen && (
-        <div className={`fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-8 sm:pt-4 bg-background backdrop-blur-sm transition-all duration-300 ${
+      {isModalOpen && createPortal(
+        <div className={`fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-20 sm:pt-4 bg-background backdrop-blur-sm transition-all duration-300 ${
           isModalAnimating ? 'opacity-100' : 'opacity-0'
         }`}>
           <div className={`bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-600/20 max-w-2xl w-full overflow-y-auto transform transition-all duration-300 ease-out ${
@@ -204,7 +205,8 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor, is
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

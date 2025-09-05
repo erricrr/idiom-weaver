@@ -10,6 +10,7 @@ interface IdiomInputFormProps {
   setTargetLanguages: (languages: Language[]) => void;
   handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   isLoading: boolean;
+  clearDuplicateNotification: () => void;
 }
 
 const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
@@ -21,6 +22,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   setTargetLanguages,
   handleSubmit,
   isLoading,
+  clearDuplicateNotification,
 }) => {
   const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(
     null
@@ -36,6 +38,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   // Handle idiom input change and advance to next step
   const handleIdiomChange = (value: string) => {
     setIdiomInput(value);
+    clearDuplicateNotification();
     if (value.trim() && currentStep === 1) {
       setCurrentStep(2);
     }
@@ -44,6 +47,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   // Handle source language selection and advance to next step
   const handleSourceLanguageSelect = (lang: Language) => {
     setSourceLanguage(lang);
+    clearDuplicateNotification();
     if (currentStep === 2) {
       setCurrentStep(3);
     }
@@ -56,6 +60,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
       : [...targetLanguages, lang];
 
     setTargetLanguages(newTargetLanguages);
+    clearDuplicateNotification();
 
     // Advance to next step if we have at least one target language selected
     if (newTargetLanguages.length > 0 && currentStep === 3) {
@@ -82,6 +87,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   const handleSourceLanguageClick = (lang: Language) => {
     if (sourceLanguage === lang) {
       setSourceLanguage(null);
+      clearDuplicateNotification();
       if (currentStep > 2) {
         setCurrentStep(2);
       }

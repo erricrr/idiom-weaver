@@ -1,5 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Language } from "../types";
+import { detectLanguage, detectLanguageHeuristic } from "../services/languageDetectionService";
 
 interface IdiomInputFormProps {
   idiomInput: string;
@@ -32,8 +33,72 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   const [currentStep, setCurrentStep] = useState<number>(1);
   // Track if user has completed the flow at least once
   const [hasCompletedFlow, setHasCompletedFlow] = useState<boolean>(false);
+  // Track language detection state
+  const [isDetectingLanguage, setIsDetectingLanguage] = useState<boolean>(false);
+  const [detectedLanguage, setDetectedLanguage] = useState<Language | null>(null);
+  const [showLanguageOverride, setShowLanguageOverride] = useState<boolean>(false);
+  const lastDetectedInput = useRef<string>('');
 
+  // Auto-detect language when idiom input changes
+  useEffect(() => {
+    const detectLanguageAsync = async () => {
+      const trimmedInput = idiomInput.trim();
 
+      if (!trimmedInput || trimmedInput.length < 3) {
+        setDetectedLanguage(null);
+        setSourceLanguage(null);
+        setIsDetectingLanguage(false);
+        lastDetectedInput.current = '';
+        return;
+      }
+
+      // Skip detection if we've already detected language for this exact input
+      if (lastDetectedInput.current === trimmedInput && detectedLanguage) {
+        return;
+      }
+
+      setIsDetectingLanguage(true);
+
+      try {
+        // Try Google's language detection first
+        let detected = await detectLanguage(trimmedInput);
+
+        // Fallback to heuristic detection if Google detection fails
+        if (!detected) {
+          detected = detectLanguageHeuristic(trimmedInput);
+        }
+
+        setDetectedLanguage(detected);
+        lastDetectedInput.current = trimmedInput;
+
+        if (detected) {
+          setSourceLanguage(detected);
+          // Auto-advance to target language selection
+          if (currentStep === 2) {
+            setCurrentStep(3);
+          }
+        }
+      } catch (error) {
+        console.error('Language detection failed:', error);
+        // Fallback to heuristic detection
+        const detected = detectLanguageHeuristic(trimmedInput);
+        setDetectedLanguage(detected);
+        lastDetectedInput.current = trimmedInput;
+        if (detected) {
+          setSourceLanguage(detected);
+          if (currentStep === 2) {
+            setCurrentStep(3);
+          }
+        }
+      } finally {
+        setIsDetectingLanguage(false);
+      }
+    };
+
+    // Debounce the detection to avoid too many API calls
+    const timeoutId = setTimeout(detectLanguageAsync, 500);
+    return () => clearTimeout(timeoutId);
+  }, [idiomInput, currentStep]);
 
   // Handle idiom input change and advance to next step
   const handleIdiomChange = (value: string) => {
@@ -83,16 +148,15 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
     handleIdiomChange(value);
   };
 
-  // Reset to previous step if user deselects source language
+  // Handle manual source language selection (override)
   const handleSourceLanguageClick = (lang: Language) => {
-    if (sourceLanguage === lang) {
-      setSourceLanguage(null);
-      clearDuplicateNotification();
-      if (currentStep > 2) {
-        setCurrentStep(2);
-      }
-    } else {
-      handleSourceLanguageSelect(lang);
+    setSourceLanguage(lang);
+    setDetectedLanguage(lang);
+    setShowLanguageOverride(false);
+    lastDetectedInput.current = idiomInput.trim(); // Mark this input as processed
+    clearDuplicateNotification();
+    if (currentStep === 2) {
+      setCurrentStep(3);
     }
   };
 
@@ -119,31 +183,63 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
         />
       </div>
 
-      {/* Language Selection - Side by side layout for better space efficiency */}
+      {/* Language Selection - Auto-detected with override option */}
       {(currentStep >= 2 || hasCompletedFlow) && (
         <div className={`space-y-6 ${!hasCompletedFlow && currentStep === 2 ? "animate-in slide-in-from-top-2 duration-300" : ""}`}>
-          {/* Source Language Section */}
+          {/* Source Language Section - Auto-detected */}
           <div>
             <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>
               Source Language
             </h4>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-              {Object.values(Language).sort().map((lang) => (
-                <button
-                  type="button"
-                  key={lang}
-                  onClick={() => handleSourceLanguageClick(lang)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center
-                    ${
-                      sourceLanguage === lang
-                        ? "bg-cyan-600 text-white ring-2 ring-cyan-600 ring-offset-2 ring-offset-slate-900"
-                        : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                    }`}
-                >
-                  {lang}
-                </button>
-              ))}
-            </div>
+
+            {isDetectingLanguage ? (
+              <div className="flex items-center space-x-2 text-slate-400">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-500"></div>
+                <span className="text-sm">Detecting language...</span>
+              </div>
+            ) : detectedLanguage ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="px-4 py-2 bg-cyan-600 text-white rounded-md text-sm font-medium font-sans">
+                      {detectedLanguage}
+                    </div>
+                    <span className="text-xs text-slate-400">Auto-detected</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowLanguageOverride(!showLanguageOverride)}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors font-sans"
+                  >
+                    {showLanguageOverride ? 'Hide options' : 'Change language'}
+                  </button>
+                </div>
+
+                {showLanguageOverride && (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 animate-in slide-in-from-top-2 duration-300">
+                    {Object.values(Language).sort().map((lang) => (
+                      <button
+                        type="button"
+                        key={lang}
+                        onClick={() => handleSourceLanguageClick(lang)}
+                        className={`px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center
+                          ${
+                            sourceLanguage === lang
+                              ? "bg-cyan-600 text-white ring-2 ring-cyan-600 ring-offset-2 ring-offset-slate-900"
+                              : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                          }`}
+                      >
+                        {lang}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-sm text-slate-400">
+                Enter a phrase to auto-detect the language
+              </div>
+            )}
           </div>
 
           {/* Target Languages Section - Only visible after source language is selected */}

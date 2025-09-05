@@ -52,7 +52,7 @@ const Header: React.FC = () => {
         </button>
 
         <div className="flex justify-center items-center mb-3 sm:mb-4">
-             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center">
+             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center" style={{fontFamily: 'Varela Round, sans-serif'}}>
                 Idiom Wea<WeaverIcon className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 text-cyan-400"/>er
             </h1>
         </div>

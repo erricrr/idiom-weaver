@@ -50,7 +50,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
         <div className={`bg-slate-800/60 p-4 sm:p-6 rounded-lg shadow-xl border-t-4 ${borderColor} flex flex-col h-full transform transition-all duration-300 hover:scale-105 hover:shadow-2xl`}>
           {/* Language name and main translation - always visible */}
           <div className="flex-grow">
-            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">{language}</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>{language}</h3>
             <div className="mb-4">
               <div className="flex items-center gap-2">
                 <p
@@ -115,7 +115,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
             {/* Modal Header */}
             <div className={`p-6 border-b border-slate-600/30 ${borderColor} bg-slate-700/30 rounded-t-xl`}>
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-white">{language}</h2>
+                <h2 className="text-2xl font-bold text-white" style={{fontFamily: 'Varela Round, sans-serif'}}>{language}</h2>
                 <button
                   onClick={closeModal}
                   className="text-slate-400 hover:text-white transition-colors duration-200 p-2 hover:bg-slate-700/50 rounded-lg"
@@ -164,7 +164,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
 
               {/* Literal Translation */}
               <div>
-                <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2" style={{fontFamily: 'Varela Round, sans-serif'}}>
                   Literal Translation
                 </h4>
                 <p className="text-slate-200 italic text-lg">"{data.literal_translation}"</p>
@@ -172,7 +172,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
 
               {/* Explanation */}
               <div>
-                <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2" style={{fontFamily: 'Varela Round, sans-serif'}}>
                   Explanation
                 </h4>
                 <p className="text-slate-200 text-base leading-relaxed">{data.explanation}</p>
@@ -180,7 +180,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor }) 
 
               {/* Usage Context */}
               <div>
-                <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2" style={{fontFamily: 'Varela Round, sans-serif'}}>
                   Usage Context
                 </h4>
                 <p className="text-slate-300 text-sm">

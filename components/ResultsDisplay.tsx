@@ -47,6 +47,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, isExiting = fa
           ref={culturalEquivalentsRef}
           id="cultural-equivalents"
           className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-purple-400"
+          style={{fontFamily: 'Varela Round, sans-serif'}}
         >
           Cultural Equivalents
         </h2>

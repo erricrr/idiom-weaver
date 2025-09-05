@@ -13,7 +13,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
       <div className="bg-slate-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold text-white">About Idiom Weaver</h2>
+            <h2 className="text-2xl font-bold text-white" style={{fontFamily: 'Varela Round, sans-serif'}}>About Idiom Weaver</h2>
             <button
               onClick={onClose}
               className="text-slate-400 hover:text-white text-2xl font-bold leading-none"
@@ -24,7 +24,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
 
           <div className="space-y-6 text-slate-300">
             <div>
-              <h3 className="text-xl font-semibold text-white mb-3">What is Idiom Weaver?</h3>
+              <h3 className="text-xl font-semibold text-white mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>What is Idiom Weaver?</h3>
               <p className="leading-relaxed">
                 Idiom Weaver is a powerful tool that helps you discover how different cultures express the same ideas.
                 Ever wondered how to say "it's raining cats and dogs" in Spanish, French, or Japanese? This app finds
@@ -33,7 +33,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold text-white mb-3">How to Use It</h3>
+              <h3 className="text-xl font-semibold text-white mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>How to Use It</h3>
               <ol className="list-decimal list-inside space-y-2 leading-relaxed">
                 <li>Enter an idiom, saying, or common phrase in the input field</li>
                 <li>Select the language your phrase is in</li>
@@ -43,7 +43,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold text-white mb-3">Why It's Useful</h3>
+              <h3 className="text-xl font-semibold text-white mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>Why It's Useful</h3>
               <ul className="list-disc list-inside space-y-2 leading-relaxed">
                 <li><strong>Language Learning:</strong> Understand cultural context and natural expressions</li>
                 <li><strong>Translation:</strong> Find authentic equivalents, not literal translations</li>
@@ -53,7 +53,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold text-white mb-3">Powered By</h3>
+              <h3 className="text-xl font-semibold text-white mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>Powered By</h3>
               <p className="leading-relaxed mb-3">
                 Idiom Weaver is powered by Gemini (gemini-2.5-flash), which provides intelligent and accurate
                 cross-cultural idiom translations and cultural context.
@@ -61,7 +61,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold text-white mb-3">Contact & Feedback</h3>
+              <h3 className="text-xl font-semibold text-white mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>Contact & Feedback</h3>
               <p className="leading-relaxed mb-3">
                 Have suggestions, found an error, or want to share your experience? I'd love to hear from you!
               </p>

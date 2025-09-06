@@ -70,18 +70,32 @@ app.post("/api/translate", async (req, res) => {
     }
 
     const targetLanguageList = targetLanguages.join(", ");
-    const prompt = `
-      You are an expert in linguistics and cultural idioms, proverbs, and common sayings.
-      The user has provided the phrase "${idiom}" from the ${sourceLanguage} language.
-      Your task is to find the conceptual equivalent idioms or phrases in the following languages: ${targetLanguageList}.
-      For each of the requested languages (${targetLanguageList}), you must provide:
-      1. The equivalent idiom in that language.
-      2. A literal translation of that idiom into English.
-      3. A brief explanation of how the idiom's meaning relates to the original concept.
+    const prompt = `You are an expert linguist and cultural specialist. Find equivalent idioms for "${idiom}" from ${sourceLanguage} in these languages: ${targetLanguageList}.
 
-      If you cannot find a suitable equivalent for a specific language, provide a thoughtful explanation of why a direct equivalent may not exist.
-      Provide the output in a valid JSON format according to the specified schema. The keys for each language must be in lowercase (e.g., "english", "spanish").
-    `;
+CRITICAL: For each language, you MUST provide all 3 fields:
+
+1. "idiom" - The culturally equivalent phrase in that language
+2. "literal_translation" - MANDATORY word-for-word English translation (NEVER empty!)
+3. "explanation" - Rich cultural context including origins, historical background, and why this metaphor is used
+
+EXAMPLE for Spanish "llueve a cántaros":
+- literal_translation: "it rains pitchers" (NOT empty, NOT just quotes)
+- explanation: "Dating back to 16th century Spain, this idiom uses the image of water pouring from large clay vessels (cántaros) that were essential in Spanish households. The metaphor reflects the Mediterranean culture's relationship with precious water resources..."
+
+OUTPUT FORMAT (JSON with lowercase language keys):
+{
+  "spanish": {
+    "idiom": "llueve a cántaros",
+    "literal_translation": "it rains pitchers",
+    "explanation": "Dating back to 16th century Spain..."
+  }
+}
+
+REQUIREMENTS:
+- literal_translation field must ALWAYS contain the actual word-for-word translation
+- Explanations must include cultural/historical origins (100-150 words)
+- Use proper diacritics and authentic spelling
+- If no exact equivalent exists, provide closest cultural match and explain the difference`;
 
     console.log("Calling Gemini API...");
 
@@ -89,9 +103,12 @@ app.post("/api/translate", async (req, res) => {
 
     try {
       model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         generationConfig: {
           responseMimeType: "application/json",
+          temperature: 0.3,
+          topP: 0.8,
+          topK: 40,
         },
       });
 
@@ -164,49 +181,80 @@ app.get("/api/tts", async (req, res) => {
   try {
     const { text, lang } = req.query;
 
-    if (!text || !lang) {
-      return res.status(400).json({ error: "Missing text or lang parameter" });
+    if (!text || !text.trim()) {
+      return res.status(400).json({ error: "Missing 'text' query param" });
     }
 
-    // Construct Google Translate TTS URL
+    if (!lang || !lang.trim()) {
+      return res.status(400).json({ error: "Missing 'lang' query param" });
+    }
+
+    // Google Translate TTS has a length limit (~200 chars). Idioms are typically short.
+    const trimmed = text.trim().slice(0, 200);
+    const languageCode = lang.trim();
+
+    console.log(`🔊 TTS API: "${trimmed}" in ${languageCode}`);
+
     const ttsUrl = new URL("https://translate.google.com/translate_tts");
     ttsUrl.searchParams.set("ie", "UTF-8");
-    ttsUrl.searchParams.set("q", text);
-    ttsUrl.searchParams.set("tl", lang);
+    ttsUrl.searchParams.set("q", trimmed);
+    ttsUrl.searchParams.set("tl", languageCode);
     ttsUrl.searchParams.set("client", "tw-ob");
 
-    // Fetch audio from Google Translate
-    const response = await fetch(ttsUrl.toString(), {
+    console.log(`📡 Fetching from Google TTS: ${ttsUrl.toString()}`);
+
+    const upstream = await fetch(ttsUrl.toString(), {
       method: "GET",
       headers: {
+        // Spoof typical browser headers to avoid upstream blocking
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
         Accept: "audio/mpeg,audio/*;q=0.9,*/*;q=0.8",
         Referer: "https://translate.google.com/",
+        "Accept-Language": "en-US,en;q=0.9",
+        DNT: "1",
+        Connection: "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
       },
     });
 
-    if (!response.ok) {
-      return res.status(response.status).json({ error: "TTS request failed" });
+    if (!upstream.ok) {
+      console.error(
+        `❌ Google TTS failed: ${upstream.status} ${upstream.statusText}`,
+      );
+      return res.status(upstream.status).json({
+        error: "Google TTS request failed",
+        status: upstream.status,
+        statusText: upstream.statusText,
+      });
     }
 
-    // Get audio data
-    const audioBuffer = await response.arrayBuffer();
+    console.log(`✅ Google TTS success: ${upstream.status}`);
+
+    const arrayBuffer = await upstream.arrayBuffer();
 
     // Set appropriate headers
     res.set({
       "Content-Type": "audio/mpeg",
-      "Content-Length": audioBuffer.byteLength,
-      "Cache-Control": "no-cache, no-store, must-revalidate",
+      "Content-Disposition": 'inline; filename="tts.mp3"',
+      "Accept-Ranges": "bytes",
+      // Absolutely disable CDN and browser caching
+      "Cache-Control":
+        "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0",
       Pragma: "no-cache",
       Expires: "0",
+      // Netlify-specific header to prevent edge caching
+      "Netlify-CDN-Cache-Control": "no-store",
     });
 
     // Send audio data
-    res.send(Buffer.from(audioBuffer));
+    res.send(Buffer.from(arrayBuffer));
   } catch (error) {
-    console.error("TTS proxy error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("❌ TTS API error:", error);
+    res.status(500).json({
+      error: "Unexpected server error",
+      details: error.message,
+    });
   }
 });
 

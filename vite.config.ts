@@ -26,40 +26,6 @@ export default defineConfig(() => {
             });
           },
         },
-        "/api/translate": {
-          target: "http://localhost:3001",
-          changeOrigin: true,
-          secure: false,
-          timeout: 60000, // 60 second timeout for translations
-          configure: (proxy, _options) => {
-            proxy.on("error", (err, _req, res) => {
-              console.error("Translation Proxy error:", err);
-              if (res && !res.headersSent) {
-                res.writeHead(503, {
-                  "Content-Type": "application/json",
-                });
-                res.end(
-                  JSON.stringify({
-                    error: "Backend server is not running",
-                    message:
-                      "Please start the backend server with: npm run server",
-                  }),
-                );
-              }
-            });
-            proxy.on("proxyReq", (proxyReq, req, _res) => {
-              console.log("Proxying translation request:", req.method, req.url);
-            });
-            proxy.on("proxyRes", (proxyRes, req, _res) => {
-              console.log(
-                "Translation response status:",
-                proxyRes.statusCode,
-                "for",
-                req.url,
-              );
-            });
-          },
-        },
       },
     },
   };

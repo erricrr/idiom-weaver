@@ -186,81 +186,177 @@ export class TTSService {
     }
   }
 
-  // Get TTS audio URL with retry logic
-  private async getTTSUrlWithRetry(
+  // Load voices for Web Speech API
+  private async loadVoices(): Promise<SpeechSynthesisVoice[]> {
+    return new Promise((resolve) => {
+      let voices = speechSynthesis.getVoices();
+
+      if (voices.length > 0) {
+        resolve(voices);
+        return;
+      }
+
+      // Voices might not be loaded yet, wait for the event
+      const handleVoicesChanged = () => {
+        voices = speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          speechSynthesis.removeEventListener(
+            "voiceschanged",
+            handleVoicesChanged,
+          );
+          resolve(voices);
+        }
+      };
+
+      speechSynthesis.addEventListener("voiceschanged", handleVoicesChanged);
+
+      // Fallback timeout
+      setTimeout(() => {
+        speechSynthesis.removeEventListener(
+          "voiceschanged",
+          handleVoicesChanged,
+        );
+        resolve(speechSynthesis.getVoices());
+      }, 2000);
+    });
+  }
+
+  // Web Speech API TTS with Google Translate fallback
+  private async playWithWebSpeechAPI(
     text: string,
     languageCode: string,
-    retryCount = 0,
-  ): Promise<string> {
-    const cacheKey = this.getCacheKey(text, languageCode);
+  ): Promise<void> {
+    if (!("speechSynthesis" in window)) {
+      throw new Error("Web Speech API not supported");
+    }
 
-    // Check cache first
-    if (this.audioCache.has(cacheKey)) {
-      const cachedUrl = this.audioCache.get(cacheKey)!;
+    // Load voices first
+    const voices = await this.loadVoices();
+    const matchingVoice = voices.find((voice) =>
+      voice.lang.toLowerCase().startsWith(languageCode.toLowerCase()),
+    );
 
-      // Validate cached URL is still good
-      if (await this.validateAudioUrl(cachedUrl)) {
-        return cachedUrl;
+    return new Promise((resolve, reject) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = languageCode;
+      utterance.rate = 0.8;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+
+      if (matchingVoice) {
+        utterance.voice = matchingVoice;
+        console.log(
+          `🗣️ Using voice: ${matchingVoice.name} (${matchingVoice.lang})`,
+        );
       } else {
-        // Remove invalid cached URL
-        this.audioCache.delete(cacheKey);
+        console.log(
+          `⚠️ No specific voice found for ${languageCode}, using default`,
+        );
       }
-    }
 
+      utterance.onend = () => {
+        console.log("🗣️ Web Speech API audio finished playing");
+        resolve();
+      };
+      utterance.onerror = (event) =>
+        reject(new Error(`Speech synthesis failed: ${event.error}`));
+
+      speechSynthesis.speak(utterance);
+    });
+  }
+
+  // Google Translate TTS via backend proxy
+  private async playWithGoogleTTS(
+    text: string,
+    languageCode: string,
+  ): Promise<void> {
+    console.log(
+      `🌐 Attempting Google TTS via backend proxy for: "${text}" in ${languageCode}`,
+    );
+
+    const encodedText = encodeURIComponent(text.trim());
+    const ttsUrl = `/api/tts?text=${encodedText}&lang=${languageCode}&t=${Date.now()}`;
+
+    console.log(`📡 TTS Request URL: ${ttsUrl}`);
+
+    // First validate the backend endpoint
     try {
-      const encodedText = encodeURIComponent(text.trim());
-      const apiUrl = `/api/tts?text=${encodedText}&lang=${languageCode}&t=${Date.now()}`;
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(
-        () => controller.abort(),
-        this.TIMEOUT_DURATION,
-      );
-
-      const response = await fetch(apiUrl, {
-        method: "GET",
-        signal: controller.signal,
-        headers: {
-          Accept: "audio/mpeg,audio/mp3,audio/*;q=0.9,*/*;q=0.1",
-          "Cache-Control": "no-cache",
-        },
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => "Unknown error");
-        throw new Error(
-          `TTS API error: ${response.status} ${response.statusText} - ${errorText}`,
+      const testResponse = await fetch(ttsUrl, { method: "HEAD" });
+      if (!testResponse.ok) {
+        console.error(
+          `❌ Backend TTS endpoint validation failed: ${testResponse.status} ${testResponse.statusText}`,
         );
+        throw new Error(`Backend TTS endpoint failed: ${testResponse.status}`);
       }
-
-      // Validate the response contains audio data
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.startsWith("audio/")) {
-        throw new Error(
-          `Invalid response content type: ${contentType || "unknown"}`,
-        );
-      }
-
-      // Cache the successful URL
-      this.audioCache.set(cacheKey, apiUrl);
-
-      return apiUrl;
-    } catch (error) {
-      if (retryCount < this.MAX_RETRIES) {
-        console.warn(
-          `TTS URL fetch attempt ${retryCount + 1} failed, retrying...`,
-          error,
-        );
-        await this.delay(this.RETRY_DELAY * (retryCount + 1));
-        return this.getTTSUrlWithRetry(text, languageCode, retryCount + 1);
-      }
-
+    } catch (fetchError) {
+      console.error(`❌ Cannot reach backend TTS endpoint:`, fetchError);
       throw new Error(
-        `Failed to get TTS audio URL after ${this.MAX_RETRIES + 1} attempts: ${error}`,
+        `Backend TTS endpoint unavailable: ${fetchError.message}`,
       );
     }
+
+    const audio = new Audio();
+
+    return new Promise<void>((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error("Google TTS timeout"));
+      }, this.TIMEOUT_DURATION);
+
+      const cleanup = () => {
+        clearTimeout(timeoutId);
+        audio.removeEventListener("canplaythrough", onCanPlay);
+        audio.removeEventListener("error", onError);
+        audio.removeEventListener("ended", onEnded);
+        audio.removeEventListener("loadstart", onLoadStart);
+      };
+
+      const onLoadStart = () => {
+        console.log("📥 Google TTS audio loading started");
+      };
+
+      const onCanPlay = async () => {
+        // Clear timeout but keep other event listeners for proper completion
+        clearTimeout(timeoutId);
+        try {
+          console.log("▶️ Playing Google TTS audio via backend proxy");
+          await audio.play();
+          // Don't resolve yet - wait for 'ended' event
+        } catch (playError) {
+          cleanup();
+          reject(playError);
+        }
+      };
+
+      const onError = (event: any) => {
+        cleanup();
+        console.error("❌ Google TTS audio error:", {
+          event,
+          audioSrc: audio.src,
+          audioError: audio.error,
+          networkState: audio.networkState,
+          readyState: audio.readyState,
+        });
+        reject(
+          new Error(
+            `Google TTS failed to load: ${audio.error ? audio.error.message : "Unknown audio error"}`,
+          ),
+        );
+      };
+
+      const onEnded = () => {
+        cleanup();
+        console.log("🔊 Google TTS audio finished playing");
+        resolve();
+      };
+
+      audio.addEventListener("loadstart", onLoadStart, { once: true });
+      audio.addEventListener("canplaythrough", onCanPlay, { once: true });
+      audio.addEventListener("error", onError, { once: true });
+      audio.addEventListener("ended", onEnded, { once: true });
+
+      audio.src = ttsUrl;
+      audio.load();
+    });
   }
 
   async playText(text: string, languageCode: string): Promise<void> {
@@ -272,21 +368,39 @@ export class TTSService {
       throw new Error("No language code provided for TTS");
     }
 
+    const trimmedText = text.trim();
+    console.log(`🔊 Starting TTS for: "${trimmedText}" in ${languageCode}`);
+    console.log(`🎯 PRIMARY METHOD: Google Translate TTS`);
+    console.log(`🔄 FALLBACK METHOD: Web Speech API`);
+
     try {
-      // Initialize audio context on first play attempt
-      this.initializeAudioContext();
+      console.log(`🌐 Attempting Google Translate TTS via backend proxy...`);
+      await this.playWithGoogleTTS(trimmedText, languageCode);
+      console.log("✅ SUCCESS: Google TTS completed successfully");
+    } catch (googleTTSError) {
+      console.error(`❌ FAILED: Google TTS failed with error:`, {
+        error: googleTTSError,
+        text: trimmedText,
+        languageCode: languageCode,
+        message: googleTTSError.message,
+      });
+      console.log(`🔄 Switching to Web Speech API fallback...`);
 
-      // Get the TTS URL with retry logic
-      const audioUrl = await this.getTTSUrlWithRetry(text.trim(), languageCode);
-
-      // Create and configure audio element
-      const audio = await this.createAudioElement(audioUrl);
-
-      // Play the audio with retry logic
-      await this.playAudioWithRetry(audio);
-    } catch (error) {
-      console.error("Error playing TTS audio:", error);
-      throw error; // Re-throw to maintain error chain
+      try {
+        console.log(`🗣️ Attempting Web Speech API...`);
+        await this.playWithWebSpeechAPI(trimmedText, languageCode);
+        console.log(
+          "✅ SUCCESS: Web Speech API fallback completed successfully",
+        );
+      } catch (webSpeechError) {
+        console.error("❌ CRITICAL: All TTS methods failed:", {
+          primaryError: googleTTSError.message,
+          fallbackError: webSpeechError.message,
+        });
+        throw new Error(
+          `All TTS methods failed. Google TTS: ${googleTTSError.message}. Web Speech API: ${webSpeechError.message}`,
+        );
+      }
     }
   }
 

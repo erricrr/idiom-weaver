@@ -32,7 +32,7 @@ Discover how different cultures express the same ideas. Enter an idiom, saying, 
 2. **Set up environment variables**
    ```bash
    cp .env.example .env
-   # Edit .env and add your GEMINI_API_KEY
+   # Edit .env and add your VITE_GEMINI_API_KEY
    ```
 
 3. **Start the development servers**
@@ -169,7 +169,8 @@ npm run start
 Ensure these environment variables are set in production:
 
 ```env
-GEMINI_API_KEY=your_production_api_key
+```bash
+VITE_GEMINI_API_KEY=your_production_api_key
 PORT=3001
 NODE_ENV=production
 ```

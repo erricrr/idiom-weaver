@@ -83,7 +83,7 @@ interface LoadingSpinnerProps {
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ isEntering = false }) => {
     return (
-        <div className={`flex flex-col items-center justify-center gap-4 py-8 transition-all duration-500 ease-in-out ${
+        <div className={`flex flex-col items-center justify-center gap-4 py-4 transition-all duration-500 ease-in-out ${
             isEntering
                 ? 'transform translate-y-0 opacity-100'
                 : 'transform -translate-y-full opacity-0'

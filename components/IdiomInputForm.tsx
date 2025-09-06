@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Language } from "../types";
-import { detectLanguage, detectLanguageHeuristic } from "../services/languageDetectionService";
+import {
+  detectLanguage,
+  detectLanguageHeuristic,
+} from "../services/languageDetectionService";
 
 interface IdiomInputFormProps {
   idiomInput: string;
@@ -26,7 +29,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   clearDuplicateNotification,
 }) => {
   const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(
-    null
+    null,
   );
 
   // Track current step for progressive disclosure
@@ -34,12 +37,16 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   // Track if user has completed the flow at least once
   const [hasCompletedFlow, setHasCompletedFlow] = useState<boolean>(false);
   // Track language detection state
-  const [isDetectingLanguage, setIsDetectingLanguage] = useState<boolean>(false);
-  const [detectedLanguage, setDetectedLanguage] = useState<Language | null>(null);
-  const [showLanguageOverride, setShowLanguageOverride] = useState<boolean>(false);
+  const [isDetectingLanguage, setIsDetectingLanguage] =
+    useState<boolean>(false);
+  const [detectedLanguage, setDetectedLanguage] = useState<Language | null>(
+    null,
+  );
+  const [showLanguageOverride, setShowLanguageOverride] =
+    useState<boolean>(false);
   const [detectionFailed, setDetectionFailed] = useState<boolean>(false);
   const [detectionTimeout, setDetectionTimeout] = useState<boolean>(false);
-  const lastDetectedInput = useRef<string>('');
+  const lastDetectedInput = useRef<string>("");
 
   // Auto-detect language when idiom input changes
   useEffect(() => {
@@ -52,7 +59,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
         setIsDetectingLanguage(false);
         setDetectionFailed(false);
         setDetectionTimeout(false);
-        lastDetectedInput.current = '';
+        lastDetectedInput.current = "";
         return;
       }
 
@@ -66,18 +73,24 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
       setDetectionTimeout(false);
 
       try {
+        console.log(`🔍 Starting language detection for: "${trimmedInput}"`);
+
         // Try Google's language detection first with 3-second timeout
         let detected = await detectLanguage(trimmedInput, 3000);
+        console.log(`🌐 Google API detection result: ${detected}`);
 
         // Fallback to heuristic detection if Google detection fails
         if (!detected) {
+          console.log(`⚡ Falling back to heuristic detection...`);
           detected = detectLanguageHeuristic(trimmedInput);
+          console.log(`🧠 Heuristic detection result: ${detected}`);
         }
 
         setDetectedLanguage(detected);
         lastDetectedInput.current = trimmedInput;
 
         if (detected) {
+          console.log(`✅ Language successfully detected as: ${detected}`);
           setSourceLanguage(detected);
           setDetectionFailed(false);
           setDetectionTimeout(false);
@@ -87,24 +100,37 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
           }
         } else {
           // Language detection failed - unsupported language
+          console.warn(
+            `❌ Language detection failed - no language detected for: "${trimmedInput}"`,
+          );
           setDetectionFailed(true);
           setDetectionTimeout(false);
           setSourceLanguage(null);
         }
       } catch (error) {
-        console.error('Language detection failed:', error);
+        console.error("❌ Language detection error:", error);
 
         // Check if it's a timeout error
-        if (error instanceof Error && error.message === 'Language detection timeout') {
+        if (
+          error instanceof Error &&
+          error.message === "Language detection timeout"
+        ) {
+          console.warn(
+            `⏰ Language detection timed out for: "${trimmedInput}"`,
+          );
           setDetectionTimeout(true);
           setDetectionFailed(false);
           setSourceLanguage(null);
         } else {
           // Other error - try heuristic detection
+          console.log(`🔄 API failed, trying heuristic detection...`);
           const detected = detectLanguageHeuristic(trimmedInput);
+          console.log(`🧠 Heuristic fallback result: ${detected}`);
+
           setDetectedLanguage(detected);
           lastDetectedInput.current = trimmedInput;
           if (detected) {
+            console.log(`✅ Fallback detection successful: ${detected}`);
             setSourceLanguage(detected);
             setDetectionFailed(false);
             setDetectionTimeout(false);
@@ -112,6 +138,9 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
               setCurrentStep(3);
             }
           } else {
+            console.warn(
+              `❌ Both API and heuristic detection failed for: "${trimmedInput}"`,
+            );
             setDetectionFailed(true);
             setDetectionTimeout(false);
             setSourceLanguage(null);
@@ -177,9 +206,14 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
 
   // Handle manual source language selection (override)
   const handleSourceLanguageClick = (lang: Language) => {
+    console.log(`👤 User manually selected source language: ${lang}`);
+    console.log(`📝 Overriding detection for text: "${idiomInput.trim()}"`);
+
     setSourceLanguage(lang);
     setDetectedLanguage(lang);
     setShowLanguageOverride(false);
+    setDetectionFailed(false);
+    setDetectionTimeout(false);
     lastDetectedInput.current = idiomInput.trim(); // Mark this input as processed
     clearDuplicateNotification();
     if (currentStep === 2) {
@@ -188,10 +222,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="p-6 rounded-xl space-y-6"
-    >
+    <form onSubmit={handleSubmit} className="p-6 rounded-xl space-y-6">
       {/* Step 1: Idiom Input - Always visible */}
       <div>
         <label
@@ -212,10 +243,15 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
 
       {/* Language Selection - Auto-detected with override option */}
       {(currentStep >= 2 || hasCompletedFlow) && (
-        <div className={`space-y-6 ${!hasCompletedFlow && currentStep === 2 ? "animate-in slide-in-from-top-2 duration-300" : ""}`}>
+        <div
+          className={`space-y-6 ${!hasCompletedFlow && currentStep === 2 ? "animate-in slide-in-from-top-2 duration-300" : ""}`}
+        >
           {/* Source Language Section - Auto-detected */}
           <div>
-            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>
+            <h4
+              className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3"
+              style={{ fontFamily: "Varela Round, sans-serif" }}
+            >
               Source Language
             </h4>
 
@@ -231,83 +267,124 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                     <div className="px-4 py-2 bg-cyan-600 text-white rounded-md text-sm font-medium font-sans ring-2 ring-cyan-600 ring-offset-2 ring-offset-slate-900">
                       {detectedLanguage}
                     </div>
-                    <span className="text-xs text-slate-400">Auto-detected</span>
+                    <span className="text-xs text-slate-400">
+                      Auto-detected
+                    </span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setShowLanguageOverride(!showLanguageOverride)}
+                    onClick={() => {
+                      console.log(
+                        `🔧 User ${showLanguageOverride ? "hiding" : "showing"} language override options`,
+                      );
+                      setShowLanguageOverride(!showLanguageOverride);
+                    }}
                     className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors font-sans"
                   >
-                    {showLanguageOverride ? 'Hide options' : 'Change language'}
+                    {showLanguageOverride ? "Hide options" : "Wrong language?"}
                   </button>
                 </div>
 
                 {showLanguageOverride && (
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 animate-in slide-in-from-top-2 duration-300">
-                    {Object.values(Language).sort().map((lang) => (
-                      <button
-                        type="button"
-                        key={lang}
-                        onClick={() => handleSourceLanguageClick(lang)}
-                        className={`px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center
+                    {Object.values(Language)
+                      .sort()
+                      .map((lang) => (
+                        <button
+                          type="button"
+                          key={lang}
+                          onClick={() => handleSourceLanguageClick(lang)}
+                          className={`px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center
                           ${
                             sourceLanguage === lang
                               ? "bg-cyan-600 text-white ring-2 ring-cyan-600 ring-offset-2 ring-offset-slate-900"
                               : "bg-slate-700 text-slate-300 hover:bg-slate-600"
                           }`}
-                      >
-                        {lang}
-                      </button>
-                    ))}
+                        >
+                          {lang}
+                        </button>
+                      ))}
                   </div>
                 )}
               </div>
             ) : detectionTimeout ? (
               <div className="space-y-3">
                 <div className="flex items-center space-x-2 text-orange-400">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                      clipRule="evenodd"
+                    />
                   </svg>
-                  <span className="text-sm font-medium">Detection taking too long</span>
+                  <span className="text-sm font-medium">
+                    Detection taking too long
+                  </span>
                 </div>
-                <div className="text-sm text-slate-400">
-                  Language detection is taking longer than expected. Please select the source language manually:
+                <div className="text-sm text-slate-400 mb-2">
+                  Language detection is taking longer than expected. Please
+                  select the source language manually:
+                </div>
+                <div className="text-xs text-slate-500 mb-3 italic">
+                  Detected text: "{idiomInput.trim()}"
                 </div>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                  {Object.values(Language).sort().map((lang) => (
-                    <button
-                      type="button"
-                      key={lang}
-                      onClick={() => handleSourceLanguageClick(lang)}
-                      className="px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center bg-slate-700 text-slate-300 hover:bg-slate-600"
-                    >
-                      {lang}
-                    </button>
-                  ))}
+                  {Object.values(Language)
+                    .sort()
+                    .map((lang) => (
+                      <button
+                        type="button"
+                        key={lang}
+                        onClick={() => handleSourceLanguageClick(lang)}
+                        className="px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center bg-slate-700 text-slate-300 hover:bg-slate-600"
+                      >
+                        {lang}
+                      </button>
+                    ))}
                 </div>
               </div>
             ) : detectionFailed ? (
               <div className="space-y-3">
                 <div className="flex items-center space-x-2 text-amber-400">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
                   </svg>
-                  <span className="text-sm font-medium">Language not supported</span>
+                  <span className="text-sm font-medium">
+                    Language not supported
+                  </span>
                 </div>
-                <div className="text-sm text-slate-400">
-                  We couldn't detect the language of your phrase. Please select the source language manually:
+                <div className="text-sm text-slate-400 mb-2">
+                  We couldn't detect the language of your phrase. Please select
+                  the source language manually:
+                </div>
+                <div className="text-xs text-slate-500 mb-3 italic">
+                  Input text: "{idiomInput.trim()}"
                 </div>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                  {Object.values(Language).sort().map((lang) => (
-                    <button
-                      type="button"
-                      key={lang}
-                      onClick={() => handleSourceLanguageClick(lang)}
-                      className="px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center bg-slate-700 text-slate-300 hover:bg-slate-600"
-                    >
-                      {lang}
-                    </button>
-                  ))}
+                  {Object.values(Language)
+                    .sort()
+                    .map((lang) => (
+                      <button
+                        type="button"
+                        key={lang}
+                        onClick={() => handleSourceLanguageClick(lang)}
+                        className="px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center bg-slate-700 text-slate-300 hover:bg-slate-600"
+                      >
+                        {lang}
+                      </button>
+                    ))}
                 </div>
               </div>
             ) : (
@@ -319,26 +396,37 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
 
           {/* Target Languages Section - Only visible after source language is selected */}
           {(currentStep >= 3 || hasCompletedFlow) && (
-            <div className={!hasCompletedFlow && currentStep === 3 ? "animate-in slide-in-from-top-2 duration-300" : ""}>
-              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>
+            <div
+              className={
+                !hasCompletedFlow && currentStep === 3
+                  ? "animate-in slide-in-from-top-2 duration-300"
+                  : ""
+              }
+            >
+              <h4
+                className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3"
+                style={{ fontFamily: "Varela Round, sans-serif" }}
+              >
                 Target Languages ({targetLanguages.length} selected)
               </h4>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                {Object.values(Language).sort().map((lang) => (
-                  <button
-                    type="button"
-                    key={lang}
-                    onClick={() => handleTargetLanguageToggle(lang)}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center
+                {Object.values(Language)
+                  .sort()
+                  .map((lang) => (
+                    <button
+                      type="button"
+                      key={lang}
+                      onClick={() => handleTargetLanguageToggle(lang)}
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center
                       ${
                         targetLanguages.includes(lang)
                           ? "bg-purple-500 text-white ring-2 ring-purple-500 ring-offset-2 ring-offset-slate-900"
                           : "bg-slate-700 text-slate-300 hover:bg-slate-600"
                       }`}
-                  >
-                    {lang}
-                  </button>
-                ))}
+                    >
+                      {lang}
+                    </button>
+                  ))}
               </div>
             </div>
           )}
@@ -347,30 +435,34 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
 
       {/* Step 4: Submit Button - Only visible after target languages are selected */}
       {(currentStep >= 4 || hasCompletedFlow) && (
-        <div className={`text-center ${!hasCompletedFlow && currentStep === 4 ? "animate-in slide-in-from-top-2 duration-300" : ""}`}>
+        <div
+          className={`text-center ${!hasCompletedFlow && currentStep === 4 ? "animate-in slide-in-from-top-2 duration-300" : ""}`}
+        >
           <div
             onClick={(e) => {
               e.preventDefault();
               if (!isLoading) {
                 // Trigger form submission manually
-                const form = e.currentTarget.closest('form');
+                const form = e.currentTarget.closest("form");
                 if (form) {
                   form.requestSubmit();
                 }
               }
             }}
             className={`w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-white bg-gradient-to-r from-cyan-600 to-purple-500 hover:from-cyan-700 hover:to-purple-700 transition-all duration-300 shadow-lg font-sans cursor-pointer select-none ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              isLoading ? "opacity-50 cursor-not-allowed" : ""
             }`}
             role="button"
             tabIndex={0}
-            aria-label={isLoading ? "Weaving idioms, please wait" : "Weave idioms"}
+            aria-label={
+              isLoading ? "Weaving idioms, please wait" : "Weave idioms"
+            }
             aria-disabled={isLoading}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
+              if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
                 if (!isLoading) {
-                  const form = e.currentTarget.closest('form');
+                  const form = e.currentTarget.closest("form");
                   if (form) {
                     form.requestSubmit();
                   }

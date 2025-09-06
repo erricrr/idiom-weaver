@@ -1,106 +1,32 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-g" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Open+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <title>Cross-Cultural Idiom Translator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Open Sans', 'sans-serif'],
+    <head>
+        <meta charset="UTF-g" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Open+Sans:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <title>Cross-Cultural Idiom Translator</title>
+
+        <script type="importmap">
+            {
+                "imports": {
+                    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.16.0",
+                    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+                    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+                    "react": "https://aistudiocdn.com/react@^19.1.1"
+                }
             }
-          }
-        }
-      }
-    </script>
-        <style>
-      html, body {
-        background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
-        margin: 0;
-        padding: 0;
-        min-height: 100vh;
-        background-size: cover;
-        background-repeat: no-repeat;
-        overflow-x: hidden;
-      }
-
-      #root {
-        background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
-        min-height: 100vh;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      /* Ensure no white backgrounds anywhere */
-      body > * {
-        background: transparent;
-      }
-
-      /* Additional fixes for scroll behavior */
-      html {
-        scroll-behavior: smooth;
-      }
-
-      /* Prevent any default margins/padding that could cause white space */
-      html, body, div, p, h1, h2, h3, h4, h5, h6 {
-        margin: 0;
-        padding: 0;
-      }
-
-      /* Ensure the gradient extends beyond viewport */
-      html::before, body::before {
-        content: '';
-        position: fixed;
-        top: -50vh;
-        left: -50vw;
-        width: 200vw;
-        height: 200vh;
-        background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
-        z-index: -1;
-        pointer-events: none;
-      }
-
-      /* Fade in animation for consistent transitions */
-      @keyframes fade-in {
-        0% {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        100% {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .animate-fade-in {
-        animation: fade-in 0.5s ease-in-out;
-      }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.16.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "react": "https://aistudiocdn.com/react@^19.1.1"
-  }
-}
-</script>
-</head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+        </script>
+    </head>
+    <body>
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div id="root"></div>
+        <script type="module" src="/index.tsx"></script>
+    </body>
 </html>

@@ -13,7 +13,8 @@
     "install:deps": "npm install",
     "setup": "npm run install:deps && echo 'Please create a .env file with your GEMINI_API_KEY'",
     "lint": "echo 'Linting not configured yet'",
-    "clean": "rm -rf dist node_modules"
+    "clean": "rm -rf dist node_modules",
+    "netlify:build": "npm run build"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",

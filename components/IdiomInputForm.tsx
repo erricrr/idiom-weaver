@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Language } from "../types";
 import {
-  detectLanguage,
+  detectLanguageHybrid,
   detectLanguageHeuristic,
 } from "../services/languageDetectionService";
 
@@ -46,6 +46,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
     useState<boolean>(false);
   const [detectionFailed, setDetectionFailed] = useState<boolean>(false);
   const [detectionTimeout, setDetectionTimeout] = useState<boolean>(false);
+  const [detectionUncertain, setDetectionUncertain] = useState<boolean>(false);
   const lastDetectedInput = useRef<string>("");
 
   // Auto-detect language when idiom input changes
@@ -59,6 +60,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
         setIsDetectingLanguage(false);
         setDetectionFailed(false);
         setDetectionTimeout(false);
+        setDetectionUncertain(false);
         lastDetectedInput.current = "";
         return;
       }
@@ -71,31 +73,30 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
       setIsDetectingLanguage(true);
       setDetectionFailed(false);
       setDetectionTimeout(false);
+      setDetectionUncertain(false);
 
       try {
         console.log(`🔍 Starting language detection for: "${trimmedInput}"`);
 
-        // Try Google's language detection first with 3-second timeout
-        let detected = await detectLanguage(trimmedInput, 3000);
-        console.log(`🌐 Google API detection result: ${detected}`);
+        // Use hybrid detection which handles timeouts gracefully
+        const detectionResult = await detectLanguageHybrid(trimmedInput);
 
-        // Fallback to heuristic detection if Google detection fails
-        if (!detected) {
-          console.log(`⚡ Falling back to heuristic detection...`);
-          detected = detectLanguageHeuristic(trimmedInput);
-          console.log(`🧠 Heuristic detection result: ${detected}`);
-        }
-
-        setDetectedLanguage(detected);
+        setDetectedLanguage(detectionResult.language);
         lastDetectedInput.current = trimmedInput;
 
-        if (detected) {
-          console.log(`✅ Language successfully detected as: ${detected}`);
-          setSourceLanguage(detected);
+        if (detectionResult.language) {
+          console.log(
+            `✅ Language successfully detected as: ${detectionResult.language} (confidence: ${(detectionResult.confidence * 100).toFixed(1)}%)`,
+          );
+          setSourceLanguage(detectionResult.language);
           setDetectionFailed(false);
           setDetectionTimeout(false);
-          // Auto-advance to target language selection
-          if (currentStep === 2) {
+
+          // Set uncertainty based on confidence threshold
+          setDetectionUncertain(detectionResult.confidence < 0.7);
+
+          // Auto-advance to target language selection if confidence is high
+          if (currentStep === 2 && detectionResult.confidence >= 0.7) {
             setCurrentStep(3);
           }
         } else {
@@ -105,46 +106,33 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
           );
           setDetectionFailed(true);
           setDetectionTimeout(false);
+          setDetectionUncertain(false);
           setSourceLanguage(null);
         }
       } catch (error) {
-        console.error("❌ Language detection error:", error);
+        // Hybrid detection should handle most errors gracefully,
+        // but if we get here, fall back to heuristic as last resort
+        console.error("❌ Unexpected language detection error:", error);
 
-        // Check if it's a timeout error
-        if (
-          error instanceof Error &&
-          error.message === "Language detection timeout"
-        ) {
-          console.warn(
-            `⏰ Language detection timed out for: "${trimmedInput}"`,
-          );
-          setDetectionTimeout(true);
+        const fallbackResult = detectLanguageHeuristic(trimmedInput);
+        console.log(
+          `🔄 Emergency heuristic fallback: ${fallbackResult.language} (confidence: ${(fallbackResult.confidence * 100).toFixed(1)}%)`,
+        );
+
+        setDetectedLanguage(fallbackResult.language);
+        lastDetectedInput.current = trimmedInput;
+
+        if (fallbackResult.language) {
+          setSourceLanguage(fallbackResult.language);
           setDetectionFailed(false);
-          setSourceLanguage(null);
+          setDetectionTimeout(false);
+          setDetectionUncertain(true); // Mark as uncertain since this is emergency fallback
+          // Don't auto-advance on emergency fallback
         } else {
-          // Other error - try heuristic detection
-          console.log(`🔄 API failed, trying heuristic detection...`);
-          const detected = detectLanguageHeuristic(trimmedInput);
-          console.log(`🧠 Heuristic fallback result: ${detected}`);
-
-          setDetectedLanguage(detected);
-          lastDetectedInput.current = trimmedInput;
-          if (detected) {
-            console.log(`✅ Fallback detection successful: ${detected}`);
-            setSourceLanguage(detected);
-            setDetectionFailed(false);
-            setDetectionTimeout(false);
-            if (currentStep === 2) {
-              setCurrentStep(3);
-            }
-          } else {
-            console.warn(
-              `❌ Both API and heuristic detection failed for: "${trimmedInput}"`,
-            );
-            setDetectionFailed(true);
-            setDetectionTimeout(false);
-            setSourceLanguage(null);
-          }
+          setDetectionFailed(true);
+          setDetectionTimeout(false);
+          setDetectionUncertain(false);
+          setSourceLanguage(null);
         }
       } finally {
         setIsDetectingLanguage(false);
@@ -214,6 +202,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
     setShowLanguageOverride(false);
     setDetectionFailed(false);
     setDetectionTimeout(false);
+    setDetectionUncertain(false);
     lastDetectedInput.current = idiomInput.trim(); // Mark this input as processed
     clearDuplicateNotification();
     if (currentStep === 2) {
@@ -258,7 +247,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
             {isDetectingLanguage ? (
               <div className="flex items-center space-x-2 text-slate-400">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-500"></div>
-                <span className="text-sm">Detecting language...</span>
+                <span className="text-sm">Analyzing language patterns...</span>
               </div>
             ) : detectedLanguage ? (
               <div className="space-y-3">
@@ -267,8 +256,36 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                     <div className="px-4 py-2 bg-cyan-600 text-white rounded-md text-sm font-medium font-sans ring-2 ring-cyan-600 ring-offset-2 ring-offset-slate-900">
                       {detectedLanguage}
                     </div>
-                    <span className="text-xs text-slate-400">
-                      Auto-detected
+                    <span className="text-xs text-slate-400 flex items-center space-x-1">
+                      <span>
+                        {detectionUncertain ? "Please verify" : "Detected"}
+                      </span>
+                      {!detectionUncertain && (
+                        <svg
+                          className="w-3 h-3 text-green-600"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                      {detectionUncertain && (
+                        <svg
+                          className="w-3 h-3 text-yellow-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
                     </span>
                   </div>
                   <button
@@ -281,7 +298,11 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                     }}
                     className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors font-sans"
                   >
-                    {showLanguageOverride ? "Hide options" : "Wrong language?"}
+                    {showLanguageOverride
+                      ? "Hide options"
+                      : detectionUncertain
+                        ? "Select correct language"
+                        : "Wrong language?"}
                   </button>
                 </div>
 
@@ -322,12 +343,12 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                     />
                   </svg>
                   <span className="text-sm font-medium">
-                    Detection taking too long
+                    Network issues detected
                   </span>
                 </div>
                 <div className="text-sm text-slate-400 mb-2">
-                  Language detection is taking longer than expected. Please
-                  select the source language manually:
+                  Language detection is having network issues. Please select the
+                  source language manually:
                 </div>
                 <div className="text-xs text-slate-500 mb-3 italic">
                   Detected text: "{idiomInput.trim()}"
@@ -341,6 +362,51 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                         key={lang}
                         onClick={() => handleSourceLanguageClick(lang)}
                         className="px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center bg-slate-700 text-slate-300 hover:bg-slate-600"
+                      >
+                        {lang}
+                      </button>
+                    ))}
+                </div>
+              </div>
+            ) : detectionUncertain ? (
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2 text-blue-400">
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="text-sm font-medium">
+                    Please confirm the language
+                  </span>
+                </div>
+                <div className="text-sm text-slate-400 mb-2">
+                  Detection confidence is low for this phrase. Please confirm or
+                  select the correct language:
+                </div>
+                <div className="text-xs text-slate-500 mb-3 italic">
+                  Input text: "{idiomInput.trim()}"
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                  {Object.values(Language)
+                    .sort()
+                    .map((lang) => (
+                      <button
+                        type="button"
+                        key={lang}
+                        onClick={() => handleSourceLanguageClick(lang)}
+                        className={`px-3 py-2 rounded-md text-sm font-medium transition-all font-sans text-center
+                          ${
+                            sourceLanguage === lang
+                              ? "bg-cyan-600 text-white ring-2 ring-cyan-600 ring-offset-2 ring-offset-slate-900"
+                              : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                          }`}
                       >
                         {lang}
                       </button>
@@ -362,11 +428,11 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                     />
                   </svg>
                   <span className="text-sm font-medium">
-                    Language not supported
+                    Language not recognized
                   </span>
                 </div>
                 <div className="text-sm text-slate-400 mb-2">
-                  We couldn't detect the language of your phrase. Please select
+                  We couldn't automatically detect the language. Please select
                   the source language manually:
                 </div>
                 <div className="text-xs text-slate-500 mb-3 italic">

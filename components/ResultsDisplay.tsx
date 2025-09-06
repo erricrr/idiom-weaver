@@ -53,9 +53,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, isExiting = fa
         </h2>
         <div className="flex flex-wrap gap-4 sm:gap-6 justify-center">
             {resultEntries.map(([langKey, data]) => (
-                <div className="w-full sm:w-80 lg:w-96">
+                <div key={langKey} className="w-full sm:w-80 lg:w-96">
                     <ResultCard
-                        key={langKey}
                         language={langKey.charAt(0).toUpperCase() + langKey.slice(1)}
                         data={data}
                         borderColor={languageColors[langKey.toLowerCase()] || 'border-slate-500'}

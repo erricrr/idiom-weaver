@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Language, ApiResult } from './types';
 import { translateIdiom, translateIdiomPartial } from './services/geminiService';
 import Header from './components/Header';
@@ -23,6 +23,7 @@ const App: React.FC = () => {
   } | null>(null);
   const [duplicateNotification, setDuplicateNotification] = useState<string | null>(null);
   const [isNotificationVisible, setIsNotificationVisible] = useState<boolean>(false);
+  const loadingAreaRef = useRef<HTMLDivElement>(null);
 
   const clearDuplicateNotification = useCallback(() => {
     setIsNotificationVisible(false);
@@ -84,6 +85,14 @@ const App: React.FC = () => {
           setTimeout(() => {
             setIsLoading(true);
             setIsTransitioning(false);
+            // Auto-scroll to loading area
+            if (loadingAreaRef.current) {
+              loadingAreaRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'nearest'
+              });
+            }
           }, 500);
 
           try {
@@ -120,6 +129,14 @@ const App: React.FC = () => {
         setResults(null);
         setIsLoading(true);
         setIsTransitioning(false);
+        // Auto-scroll to loading area
+        if (loadingAreaRef.current) {
+          loadingAreaRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
       }, 500);
       try {
         const response = await translateIdiom(idiomInput, sourceLanguage, targetLanguages);
@@ -184,7 +201,7 @@ const App: React.FC = () => {
             isLoading={isLoading}
             clearDuplicateNotification={clearDuplicateNotification}
           />
-          <div className="mt-10 relative">
+          <div ref={loadingAreaRef} className="mt-10 relative">
             {isLoading && <LoadingSpinner isEntering={!isTransitioning} />}
             {error && <ErrorAlert message={error} />}
             {results && <ResultsDisplay results={results} isExiting={isTransitioning} />}

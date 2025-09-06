@@ -54,10 +54,10 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             <div>
               <h3 className="text-xl font-semibold text-white mb-3" style={{fontFamily: 'Varela Round, sans-serif'}}>How to Use It</h3>
               <ol className="list-decimal list-inside space-y-2 leading-relaxed">
-                <li>Enter an idiom, saying, or common phrase in the input field</li>
-                <li>Select the language your phrase is in</li>
-                <li>Choose one or more target languages you want to translate to</li>
-                <li>Click "Weave" to discover cultural equivalents</li>
+              <li>Enter an idiom, saying, or phrase in the input box.</li>
+  <li>The source language is detected automatically (you can adjust it if needed).</li>
+  <li>Select one or more target languages.</li>
+  <li>Click <strong>Weave</strong> to see how the same idea is expressed across cultures.</li>
               </ol>
             </div>
 

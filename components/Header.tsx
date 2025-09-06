@@ -33,7 +33,7 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <header className="text-center px-4 sm:px-6 relative">
+      <header className="text-center mx-auto px-4 pt-8 sm:pt-9 relative">
         {/* Help Icon - Upper Right */}
         <button
           onClick={() => setIsHelpOpen(true)}
@@ -52,18 +52,16 @@ const Header: React.FC = () => {
         </button>
 
         <div className="flex justify-center items-center mb-3 sm:mb-4">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center font-varela">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center font-varela">
             Idiom Wea
-            <WeaverIcon className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 text-cyan-400" />
+            <WeaverIcon className="w-10 sm:h-10 md:w-12 md:h-12 text-cyan-400" />
             er
           </h1>
         </div>
         <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-300 leading-relaxed font-sans">
-          Discover how different cultures express the same ideas. Enter an
-          idiom, saying, or common phrase, choose your languages, and find its
-          cross-cultural equivalents.
+        Discover how the world weaves the same ideas into different words. Enter an idiom, saying, or phrase, and explore its cross-cultural equivalents.
         </p>
-      </header>
+        </header>
 
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </>

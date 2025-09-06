@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Language, ApiResult } from './types';
 import { translateIdiom, translateIdiomPartial } from './services/geminiService';
 import Header from './components/Header';
@@ -24,6 +24,52 @@ const App: React.FC = () => {
   const [duplicateNotification, setDuplicateNotification] = useState<string | null>(null);
   const [isNotificationVisible, setIsNotificationVisible] = useState<boolean>(false);
   const loadingAreaRef = useRef<HTMLDivElement>(null);
+
+  // Global audio initialization for mobile browsers
+  useEffect(() => {
+    let audioContext: AudioContext | null = null;
+    let isInitialized = false;
+
+    const initializeAudio = () => {
+      if (isInitialized) return;
+
+      try {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+
+        if (audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+
+        isInitialized = true;
+        console.log('Audio context initialized for TTS');
+      } catch (error) {
+        console.warn('Audio context initialization failed:', error);
+      }
+    };
+
+    // Initialize audio on first user interaction
+    const handleFirstInteraction = () => {
+      initializeAudio();
+      // Remove event listeners after first interaction
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+      document.removeEventListener('keydown', handleFirstInteraction);
+    };
+
+    // Add event listeners for various user interactions
+    document.addEventListener('click', handleFirstInteraction, { once: true });
+    document.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    document.addEventListener('keydown', handleFirstInteraction, { once: true });
+
+    // Cleanup function
+    return () => {
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+      document.removeEventListener('keydown', handleFirstInteraction);
+    };
+  }, []);
 
   const clearDuplicateNotification = useCallback(() => {
     setIsNotificationVisible(false);

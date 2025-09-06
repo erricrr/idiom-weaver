@@ -43,6 +43,17 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor, is
     }
   };
 
+  // Handle touch events for better mobile support
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Prevent default to avoid double-tap zoom on mobile
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = async (e: React.TouchEvent) => {
+    e.preventDefault();
+    await handleTextClick();
+  };
+
   const openModal = () => {
     setIsModalOpen(true);
     setTimeout(() => setIsModalAnimating(true), 10);
@@ -68,13 +79,19 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor, is
                     isPlaying ? 'opacity-70' : 'hover:opacity-80'
                   }`}
                   onClick={handleTextClick}
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
+                  style={{ touchAction: 'manipulation' }}
                   title={`Click to hear "${data.idiom}" in ${language}`}
                 >
                   {data.idiom}
                 </p>
                 <button
                   onClick={handleTextClick}
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
                   disabled={isPlaying}
+                  style={{ touchAction: 'manipulation' }}
                   className="p-1 text-cyan-300 hover:text-cyan-200 hover:bg-slate-700/50 rounded transition-all duration-200 disabled:opacity-50"
                   title="Play audio"
                 >
@@ -155,13 +172,19 @@ const ResultCard: React.FC<ResultCardProps> = ({ language, data, borderColor, is
                       isPlaying ? 'opacity-70' : 'hover:opacity-80'
                     }`}
                     onClick={handleTextClick}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                    style={{ touchAction: 'manipulation' }}
                     title={`Click to hear "${data.idiom}" in ${language}`}
                   >
                     {data.idiom}
                   </p>
                   <button
                     onClick={handleTextClick}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
                     disabled={isPlaying}
+                    style={{ touchAction: 'manipulation' }}
                     className="p-2 text-cyan-300 hover:text-cyan-200 hover:bg-slate-700/50 rounded-lg transition-all duration-200 disabled:opacity-50"
                     title="Play audio"
                   >

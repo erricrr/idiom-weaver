@@ -72,32 +72,62 @@ export const handler = async (event, context) => {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
     const targetLanguageList = targetLanguages.join(", ");
-    const prompt = `You are an expert linguist and cultural specialist. Find equivalent idioms for "${idiom}" from ${sourceLanguage} in these languages: ${targetLanguageList}.
+    const prompt = `You are Professor Polyglot, an expert linguist and cultural specialist with deep knowledge of idioms across cultures. Find culturally equivalent idioms for "${idiom}" from ${sourceLanguage} in these languages: ${targetLanguageList}.
 
-CRITICAL: For each language, you MUST provide all 3 fields:
+CRITICAL FORMATTING RULES - STRICTLY REQUIRED:
 
-1. "idiom" - The culturally equivalent phrase in that language
-2. "literal_translation" - MANDATORY word-for-word English translation (NEVER empty!)
-3. "explanation" - Rich cultural context including origins, historical background, and why this metaphor is used
+For JAPANESE specifically, you MUST provide these four fields:
+- "idiom": The Japanese characters (kanji/hiragana/katakana)
+- "phonetic": The complete romaji pronunciation
+- "literal_translation": Word-for-word English translation
+- "explanation": Rich cultural context (100-150 words)
 
-EXAMPLE for Spanish "llueve a cántaros":
-- literal_translation: "it rains pitchers" (NOT empty, NOT just quotes)
-- explanation: "Dating back to 16th century Spain, this idiom uses the image of water pouring from large clay vessels (cántaros) that were essential in Spanish households. The metaphor reflects the Mediterranean culture's relationship with precious water resources..."
+For ALL OTHER LANGUAGES, provide these three fields:
+- "idiom": The phrase in native script with proper diacritics
+- "literal_translation": MANDATORY word-for-word English translation (NEVER empty!)
+- "explanation": Cultural context with origins and historical background (100-150 words)
 
-OUTPUT FORMAT (JSON with lowercase language keys):
+EXAMPLE OUTPUT FORMATS:
+
+Japanese Example - "猫に小判" (neko ni koban):
+{
+  "japanese": {
+    "idiom": "猫に小判",
+    "phonetic": "neko ni koban",
+    "literal_translation": "gold coins to a cat",
+    "explanation": "This Edo period idiom (1603-1868) reflects Japan's historical relationship with precious metals and the practical wisdom of merchant culture. Koban were oval gold coins used as currency, representing significant wealth. The image of offering such treasure to a cat, who cannot appreciate its value, perfectly captures the futility of giving something valuable to someone who cannot understand or use it. This metaphor resonates deeply in Japanese culture, which highly values practical wisdom and appropriate allocation of resources..."
+  }
+}
+
+Spanish Example - "llueve a cántaros":
 {
   "spanish": {
     "idiom": "llueve a cántaros",
     "literal_translation": "it rains pitchers",
-    "explanation": "Dating back to 16th century Spain..."
+    "explanation": "Dating back to 16th century Spain, this idiom uses the image of water pouring from large clay vessels (cántaros) that were essential in Spanish households. These wide-mouthed earthenware jugs were used for storing and transporting water, and the metaphor of rain falling as if poured from these vessels creates a vivid image of torrential downpour. The phrase reflects Mediterranean culture's intimate relationship with water as a precious resource..."
   }
 }
 
-REQUIREMENTS:
-- literal_translation field must ALWAYS contain the actual word-for-word translation
-- Explanations must include cultural/historical origins (100-150 words)
-- Use proper diacritics and authentic spelling
-- If no exact equivalent exists, provide closest cultural match and explain the difference`;
+MISSION PARAMETERS:
+
+1. ACCURACY FIRST: Find TRUE cultural equivalents, not just literal translations
+2. CULTURAL RESEARCH: Include historical origins, folk wisdom, and cultural contexts
+3. AUTHENTIC LANGUAGE: Use proper native scripts, diacritics, and authentic spelling
+4. NO EMPTY FIELDS: literal_translation field MUST always contain actual translations
+5. JAPANESE ONLY: ALWAYS include both "idiom" AND "phonetic" for Japanese
+6. RICH CONTEXT: Make explanations engaging with historical context and cultural significance
+7. PERFECT JSON: Use lowercase language keys, proper escaping, valid JSON structure
+
+VALIDATION CHECKLIST:
+- Japanese entries have both "idiom" AND "phonetic" fields
+- Every literal_translation field contains actual word-for-word translation
+- Explanations include cultural origins and historical context
+- Native scripts and proper diacritics used throughout
+- JSON is perfectly formatted with lowercase language keys
+
+If no exact cultural equivalent exists, find the CLOSEST match and explain the cultural differences with equal detail and enthusiasm.
+
+OUTPUT FORMAT (JSON with lowercase language keys):`;
 
     console.log("Calling Gemini API...");
     const model = genAI.getGenerativeModel({

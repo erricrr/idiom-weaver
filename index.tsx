@@ -10,6 +10,9 @@ if (!rootElement) {
 }
 
 const root = ReactDOM.createRoot(rootElement);
+
+console.log("🚀 Starting app render...");
+
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
@@ -17,3 +20,5 @@ root.render(
     </ErrorBoundary>
   </React.StrictMode>,
 );
+
+console.log("✅ App render initiated successfully");

@@ -8,7 +8,7 @@ export const detectLanguage = async (
   // Don't attempt API detection for very short text
   if (text.trim().length < 4) {
     console.log("Text too short for API detection, using heuristic");
-    return detectLanguageHeuristic(text);
+    return detectLanguageHeuristic(text).language;
   }
 
   try {
@@ -37,7 +37,7 @@ export const detectLanguage = async (
       console.warn(
         `Google API returned ${response.status}, falling back to heuristic`,
       );
-      return detectLanguageHeuristic(text);
+      return detectLanguageHeuristic(text).language;
     }
 
     const data = await response.json();
@@ -87,7 +87,7 @@ export const detectLanguage = async (
       console.warn(
         "Could not extract language code from Google API, using heuristic fallback",
       );
-      return detectLanguageHeuristic(text);
+      return detectLanguageHeuristic(text).language;
     }
 
     console.log(`Google API detected language code: ${detectedLanguageCode}`);
@@ -125,7 +125,7 @@ export const detectLanguage = async (
       console.warn(
         `Unsupported language code: ${detectedLanguageCode}, using heuristic fallback`,
       );
-      return detectLanguageHeuristic(text);
+      return detectLanguageHeuristic(text).language;
     }
   } catch (error) {
     // Handle different types of errors gracefully
@@ -144,7 +144,7 @@ export const detectLanguage = async (
     }
 
     // Always fall back to heuristic detection instead of throwing
-    return detectLanguageHeuristic(text);
+    return detectLanguageHeuristic(text).language;
   }
 };
 

@@ -96,7 +96,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
   const handleTouchStart = (e: React.TouchEvent) => {
     // Only prevent default for specific gestures, don't block all touch events
     // This prevents double-tap zoom without breaking other touch interactions
-    if (e.touches.length === 1) {
+    if (e.touches.length === 1 && e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.touchAction = 'manipulation';
     }
   };

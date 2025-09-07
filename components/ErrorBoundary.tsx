@@ -22,8 +22,11 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log the error details
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Log the error details with more information
+    console.error('🚨 ErrorBoundary caught an error:', error);
+    console.error('📍 Error info:', errorInfo);
+    console.error('📋 Error stack:', error.stack);
+    console.error('🔍 Component stack:', errorInfo.componentStack);
 
     this.setState({
       error,
@@ -78,14 +81,29 @@ class ErrorBoundary extends Component<Props, State> {
                 </div>
               </div>
 
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {this.state.error && (
                 <details className="mt-8 text-left bg-red-900/20 p-4 rounded-lg">
                   <summary className="cursor-pointer text-red-300 font-medium">
-                    Error Details (Development Mode)
+                    🔍 Error Details (Click to expand)
                   </summary>
-                  <pre className="mt-2 text-xs text-red-200 overflow-auto">
-                    {this.state.error.toString()}
-                    {this.state.errorInfo?.componentStack}
+                  <pre className="mt-2 text-xs text-red-200 overflow-auto max-h-60">
+                    <strong>Error:</strong> {this.state.error.toString()}
+                    {this.state.error.stack && (
+                      <>
+                        <br/><br/>
+                        <strong>Stack Trace:</strong>
+                        <br/>
+                        {this.state.error.stack}
+                      </>
+                    )}
+                    {this.state.errorInfo?.componentStack && (
+                      <>
+                        <br/><br/>
+                        <strong>Component Stack:</strong>
+                        <br/>
+                        {this.state.errorInfo.componentStack}
+                      </>
+                    )}
                   </pre>
                 </details>
               )}

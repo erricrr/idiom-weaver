@@ -13,6 +13,8 @@ import ErrorAlert from "./components/ErrorAlert";
 import Welcome from "./components/Welcome";
 
 const App: React.FC = () => {
+  console.log("🏗️ App component initializing...");
+
   const [idiomInput, setIdiomInput] = useState<string>("");
   const [sourceLanguage, setSourceLanguage] = useState<Language | null>(null);
   const [targetLanguages, setTargetLanguages] = useState<Language[]>([]);
@@ -242,6 +244,8 @@ const App: React.FC = () => {
       clearDuplicateNotification,
     ],
   );
+
+  console.log("🎨 App component rendering...");
 
   return (
     <div className="min-h-screen font-sans text-white p-4 sm:p-6 md:p-8 overflow-x-hidden">

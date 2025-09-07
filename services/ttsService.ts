@@ -436,7 +436,7 @@ export class TTSService {
   async preloadAudio(text: string, language: string): Promise<void> {
     try {
       const languageCode = this.getLanguageCode(language);
-      await this.getTTSUrlWithRetry(text.trim(), languageCode);
+      await this.playWithGoogleTTS(text.trim(), languageCode);
       console.log(`Audio preloaded for: ${text} (${language})`);
     } catch (error) {
       console.warn("Audio preload failed:", error);

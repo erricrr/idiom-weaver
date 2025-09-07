@@ -147,10 +147,10 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                 Powered By
               </h3>
               <p className="leading-relaxed mb-3">
-                Idiom Weaver is powered by Gemini 2.5 Pro, Google's most
-                advanced AI model, which provides intelligent and accurate
-                cross-cultural idiom translations with rich cultural and
-                historical context.
+              Idiom Weaver is powered by Gemini (gemini-2.5-flash),
+              providing intelligent, accurate cross-cultural idiom
+              translations with rich cultural and historical context&mdash;at least,
+              that&rsquo;s what it&rsquo;s prompted to do!
               </p>
               <p className="leading-relaxed">
                 Text-to-speech functionality is provided by Google Translate's

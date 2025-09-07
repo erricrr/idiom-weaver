@@ -190,19 +190,40 @@ export const detectLanguageHeuristic = (
 
   // Enhanced English patterns (common words, contractions, idioms)
   const englishPatterns = [
+    // Core English words (very high frequency)
     /\b(the|and|or|but|in|on|at|to|for|of|with|by|a|an|is|are|was|were|be|been|have|has|had|do|does|did|will|would|could|should|can|may|might|must)\b/g,
-    /\b(it's|don't|won't|can't|shouldn't|wouldn't|couldn't|isn't|aren't|wasn't|weren't|haven't|hasn't|hadn't)\b/g,
+    // English contractions (very distinctive)
+    /\b(it's|don't|won't|can't|shouldn't|wouldn't|couldn't|isn't|aren't|wasn't|weren't|haven't|hasn't|hadn't|he's|she's|we're|they're|I'm|I've|I'll|I'd)\b/g,
+    // Question words and demonstratives
     /\b(when|where|what|who|why|how|which|that|this|these|those)\b/g,
-    /\b(speak|word|time|people|make|get|take|come|go|see|know|think|say|look|use|find|give|tell|work|call|try|ask|need|feel|become|leave|put)\b/g,
-    /\bing\b/g, // English -ing endings are very distinctive
+    // Common verbs and nouns
+    /\b(speak|word|time|people|make|get|take|come|go|see|know|think|say|look|use|find|give|tell|work|call|try|ask|need|feel|become|leave|put|want|like|good|bad|big|small|new|old|right|wrong)\b/g,
+    // English verb endings
+    /\b\w+ing\b/g, // English -ing endings are very distinctive
+    /\b\w+ed\b/g, // English -ed past tense endings
+    /\b\w+ly\b/g, // English -ly adverbs
+    /\b\w+tion\b/g, // English -tion endings (but also exists in other languages)
     // Common English idiom patterns
     /\b(actions speak louder|break a leg|piece of cake|bite the bullet|hit the nail|spill the beans|break the ice|cost an arm|kill two birds|let the cat out)\b/g,
-    /\b(than|through|though|their|there|they're|where|were|your|you're)\b/g, // English-specific homophones/confusables
+    // English-specific words and constructions
+    /\b(than|through|though|their|there|they're|where|were|your|you're|going|doing|being|having|getting|making|taking|coming|seeing|looking|thinking|saying|working|trying|asking|feeling|wanting|liking)\b/g,
+    // English articles and prepositions (more complete)
+    /\b(from|into|about|over|under|up|down|out|off|away|back|here|there|now|then|before|after|during|while|since|until|because|if|unless|although|however|therefore|thus|also|only|just|even|still|yet|already|again|always|never|sometimes|often|usually|maybe|perhaps|probably|certainly|definitely)\b/g,
+    // English pronouns and possessives
+    /\b(I|you|he|she|it|we|they|me|him|her|us|them|my|your|his|her|its|our|their|mine|yours|hers|ours|theirs|myself|yourself|himself|herself|itself|ourselves|yourselves|themselves)\b/g,
   ];
 
-  englishPatterns.forEach((pattern) => {
+  englishPatterns.forEach((pattern, index) => {
     const matches = lowerText.match(pattern);
-    if (matches) scores[Language.English] += matches.length * 2;
+    if (matches) {
+      // Give higher weight to more distinctive English patterns
+      let weight = 2;
+      if (index === 1) weight = 4; // Contractions are very distinctive
+      if (index === 2) weight = 3; // Question words are distinctive
+      if (index === 6) weight = 5; // Idiom patterns are very distinctive
+      if (index === 11) weight = 3; // Pronouns are distinctive
+      scores[Language.English] += matches.length * weight;
+    }
   });
 
   // Spanish patterns (articles, prepositions, common verbs)
@@ -263,16 +284,22 @@ export const detectLanguageHeuristic = (
 
   // Portuguese patterns (similar to Spanish but with distinctive features)
   const portuguesePatterns = [
-    /\b(o|a|os|as|um|uma|de|do|da|dos|das|em|no|na|nos|nas|com|por|para)\b/g,
-    /\b(que|como|quando|onde|porque|se|mas|e|ou|não|sim|é|são|está|estão|ser|estar|ter|fazer)\b/g,
-    /\b(muito|mais|menos|todo|todos|toda|todas|este|esta|estes|estas)\b/g,
-    /\b(água|casa|tempo|ano|dia|pessoa|mundo|vida|homem|mulher|país|cidade|trabalho|mão|olho|cabeça)\b/g,
-    /ção\b/g, // Portuguese -ção endings
-    /\bnh\b/g, // Portuguese nh combination
-    /[ãõ]/g, // Portuguese-specific nasals
-    /\b\w+mente\b/g, // Portuguese -mente adverbs
-    /lh/g, // Portuguese lh combination
-    /inha\b|inho\b/g, // Portuguese diminutives
+    // Portuguese articles and prepositions (more specific)
+    /\b(o|a|os|as|um|uma|de|do|da|dos|das|em|no|na|nos|nas|com|por|para|entre|sobre|até)\b/g,
+    // Portuguese-specific words (distinctive from English)
+    /\b(que|como|quando|onde|porque|se|mas|e|ou|não|sim|é|são|está|estão|ser|estar|ter|fazer|muito|mais|menos|todo|todos|toda|todas|este|esta|estes|estas)\b/g,
+    // Portuguese nouns (distinctive)
+    /\b(água|casa|tempo|ano|dia|pessoa|mundo|vida|homem|mulher|país|cidade|trabalho|mão|olho|cabeça|coração|amor|dinheiro|português|brasil)\b/g,
+    // Portuguese-specific combinations and endings (highly distinctive)
+    /\bção\b/g, // Portuguese -ção endings (more specific)
+    /\bnh[aeiou]\b/g, // Portuguese nh combination with vowel
+    /[ãõ]/g, // Portuguese-specific nasals (very distinctive)
+    /\b\w+mente\b/g, // Portuguese -mente adverbs (specific pattern)
+    /lh[aeiou]/g, // Portuguese lh combination with vowel
+    /\b\w+inha\b|\b\w+inho\b/g, // Portuguese diminutives (more specific)
+    // Portuguese verb conjugations (distinctive)
+    /\b\w+ando\b|\b\w+endo\b|\b\w+indo\b/g, // Portuguese gerunds
+    /\bestá\b|\bestão\b|\bestavam\b/g, // Portuguese estar conjugations
   ];
 
   portuguesePatterns.forEach((pattern) => {
@@ -361,6 +388,19 @@ export const detectLanguageHeuristic = (
   // Boost confidence for high scores
   if (maxScore >= 10) confidence = Math.min(confidence * 1.5, 1);
   if (maxScore >= 20) confidence = Math.min(confidence * 1.8, 1);
+  if (maxScore >= 30) confidence = Math.min(confidence * 2.0, 1);
+
+  // Extra boost for English if it has a clear lead (helps with mobile detection)
+  if (detectedLanguage === Language.English && maxScore > 15) {
+    const secondHighestScore = Math.max(...Object.entries(scores)
+      .filter(([lang, _]) => lang !== Language.English)
+      .map(([_, score]) => score));
+
+    if (maxScore > secondHighestScore * 2) {
+      confidence = Math.min(confidence * 1.3, 1);
+      console.log(`🇺🇸 English confidence boost applied (clear lead: ${maxScore} vs ${secondHighestScore})`);
+    }
+  }
 
   // Reduce confidence for short texts
   if (textLength < 20) confidence *= 0.7;
@@ -369,6 +409,14 @@ export const detectLanguageHeuristic = (
   console.log(
     `Heuristic detection result: ${detectedLanguage} (score: ${maxScore}, confidence: ${(confidence * 100).toFixed(1)}%)`,
   );
+
+  // Debug: Show top 3 language scores for troubleshooting
+  const topScores = Object.entries(scores)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 3)
+    .map(([lang, score]) => `${lang}: ${score}`)
+    .join(', ');
+  console.log(`🔍 Language scores - ${topScores}`);
 
   return { language: detectedLanguage, confidence };
 };
@@ -426,9 +474,16 @@ export const detectLanguageHybrid = async (
     };
   }
 
-  // On mobile, if heuristic has high confidence, skip API to avoid CORS issues
-  if (isMobile && heuristicResult.confidence > 0.8) {
-    console.log(`📱 Mobile high-confidence heuristic bypass: ${heuristicResult.language}`);
+  // On mobile, only skip API if heuristic has VERY high confidence AND detects a distinctive language
+  // This prevents false positives while still avoiding CORS issues when we're very sure
+  const isVeryConfidentAndDistinctive = heuristicResult.confidence > 0.95 &&
+    (heuristicResult.language === Language.Japanese ||
+     heuristicResult.language === Language.Vietnamese ||
+     heuristicResult.language === Language.German ||
+     heuristicResult.language === Language.Dutch);
+
+  if (isMobile && isVeryConfidentAndDistinctive) {
+    console.log(`📱 Mobile high-confidence distinctive language bypass: ${heuristicResult.language}`);
     return {
       language: heuristicResult.language,
       confidence: heuristicResult.confidence,
@@ -475,15 +530,36 @@ export const detectLanguageHybrid = async (
       };
     }
 
-    // If both succeeded but disagree, prefer API but with lower confidence
+    // If both succeeded but disagree, handle common confusion cases
     if (
       apiResult &&
       heuristicResult.language &&
       apiResult !== heuristicResult.language
     ) {
       console.log(
-        `⚖️ Disagreement - API: ${apiResult}, Heuristic: ${heuristicResult.language}, preferring API`,
+        `⚖️ Disagreement - API: ${apiResult}, Heuristic: ${heuristicResult.language}`,
       );
+
+      // Special handling for English vs Portuguese confusion
+      if (
+        (apiResult === Language.Portuguese && heuristicResult.language === Language.English) ||
+        (apiResult === Language.English && heuristicResult.language === Language.Portuguese)
+      ) {
+        // Check for strong English indicators to resolve the confusion
+        const strongEnglishIndicators = /\b(the|and|this|that|it's|don't|can't|going|doing|being|have|has|will|would|could|should)\b/gi;
+        const englishMatches = trimmedText.match(strongEnglishIndicators);
+
+        if (englishMatches && englishMatches.length > 0) {
+          console.log(`🇺🇸 Strong English indicators found, preferring English over Portuguese`);
+          return {
+            language: Language.English,
+            confidence: 0.8,
+            method: "english-portuguese-resolution",
+          };
+        }
+      }
+
+      // For other disagreements, prefer API but with lower confidence
       return {
         language: apiResult,
         confidence: 0.6, // Lower confidence due to disagreement

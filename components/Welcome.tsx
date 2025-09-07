@@ -10,7 +10,7 @@ const Welcome: React.FC<WelcomeProps> = ({ isExiting = false }) => {
   return (
     <div className={`text-center p-4 sm:p-8 bg-slate-800/30 rounded-xl relative overflow-hidden transition-all duration-500 ease-in-out ${
       isExiting
-        ? 'transform translate-y-full opacity-0'
+        ? 'transform translate-y-full opacity-0 absolute top-0 left-0 right-0 pointer-events-none'
         : 'transform translate-y-0 opacity-100 animate-fade-in'
     }`}>
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 to-purple-400"></div>

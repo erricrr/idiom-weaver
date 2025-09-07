@@ -309,7 +309,7 @@ const App: React.FC = () => {
               <ResultsDisplay results={results} isExiting={false} />
             )}
             {!error && !results && !duplicateNotification && (
-              <Welcome isExiting={isTransitioning} />
+              <Welcome isExiting={isLoading || isTransitioning} />
             )}
           </div>
         </main>

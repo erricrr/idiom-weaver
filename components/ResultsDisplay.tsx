@@ -21,16 +21,25 @@ const languageColors: Record<string, string> = {
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, isExiting = false }) => {
   const resultEntries = Object.entries(results).sort(([a], [b]) => a.localeCompare(b));
   const culturalEquivalentsRef = useRef<HTMLDivElement>(null);
+  const previousResultKeysRef = useRef<string>('');
 
-  // Auto-scroll to Cultural Equivalents section when results appear
+  // Auto-scroll to Cultural Equivalents section when results first appear
+  // Skip auto-scroll during partial re-weaves to prevent jerky mobile behavior
   useEffect(() => {
-    if (culturalEquivalentsRef.current) {
+    const currentResultKeys = Object.keys(results).sort().join(',');
+    const isPartialUpdate = previousResultKeysRef.current !== '' &&
+                           currentResultKeys.includes(previousResultKeysRef.current);
+
+    if (culturalEquivalentsRef.current && !isPartialUpdate) {
+      // Only auto-scroll when it's a fresh set of results, not a partial update
       culturalEquivalentsRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
         inline: 'nearest'
       });
     }
+
+    previousResultKeysRef.current = currentResultKeys;
   }, [results]);
 
   if (resultEntries.length === 0) {

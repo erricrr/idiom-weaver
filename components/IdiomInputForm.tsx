@@ -95,8 +95,8 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
           // Set uncertainty based on confidence threshold
           setDetectionUncertain(detectionResult.confidence < 0.7);
 
-          // Auto-advance to target language selection if confidence is high
-          if (currentStep === 2 && detectionResult.confidence >= 0.7) {
+          // Auto-advance to target language selection when language is detected
+          if (currentStep === 2) {
             setCurrentStep(3);
           }
         } else {
@@ -258,7 +258,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                     </div>
                     <span className="text-xs text-slate-400 flex items-center space-x-1">
                       <span>
-                        {detectionUncertain ? "Please verify" : "Detected"}
+                        {detectionUncertain ? "Not feeling confident" : "Detected"}
                       </span>
                       {!detectionUncertain && (
                         <svg

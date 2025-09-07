@@ -211,7 +211,12 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 rounded-xl space-y-6">
+    <form
+      onSubmit={handleSubmit}
+      className="p-6 rounded-xl space-y-6"
+      noValidate
+      autoComplete="off"
+    >
       {/* Step 1: Idiom Input - Always visible */}
       <div>
         <label
@@ -504,40 +509,18 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
         <div
           className={`text-center ${!hasCompletedFlow && currentStep === 4 ? "animate-in slide-in-from-top-2 duration-300" : ""}`}
         >
-          <div
-            onClick={(e) => {
-              e.preventDefault();
-              if (!isLoading) {
-                // Trigger form submission manually
-                const form = e.currentTarget.closest("form");
-                if (form) {
-                  form.requestSubmit();
-                }
-              }
-            }}
-            className={`w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-white bg-gradient-to-r from-cyan-600 to-purple-500 hover:from-cyan-700 hover:to-purple-700 transition-all duration-300 shadow-lg font-sans cursor-pointer select-none ${
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-white bg-gradient-to-r from-cyan-600 to-purple-500 hover:from-cyan-700 hover:to-purple-700 transition-all duration-300 shadow-lg font-sans ${
               isLoading ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            role="button"
-            tabIndex={0}
             aria-label={
               isLoading ? "Weaving idioms, please wait" : "Weave idioms"
             }
-            aria-disabled={isLoading}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                if (!isLoading) {
-                  const form = e.currentTarget.closest("form");
-                  if (form) {
-                    form.requestSubmit();
-                  }
-                }
-              }
-            }}
           >
             {isLoading ? "Weaving..." : "Weave"}
-          </div>
+          </button>
         </div>
       )}
     </form>

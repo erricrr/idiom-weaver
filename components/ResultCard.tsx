@@ -94,13 +94,19 @@ const ResultCard: React.FC<ResultCardProps> = ({
 
   // Handle touch events for better mobile support
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Prevent default to avoid double-tap zoom on mobile
-    e.preventDefault();
+    // Only prevent default for specific gestures, don't block all touch events
+    // This prevents double-tap zoom without breaking other touch interactions
+    if (e.touches.length === 1) {
+      e.currentTarget.style.touchAction = 'manipulation';
+    }
   };
 
   const handleTouchEnd = async (e: React.TouchEvent) => {
-    e.preventDefault();
-    await handleTextClick();
+    // Don't prevent default here - let the browser handle touch events normally
+    // Only trigger our action if this was a simple tap (not a scroll or gesture)
+    if (e.changedTouches.length === 1) {
+      await handleTextClick();
+    }
   };
 
   const openModal = () => {

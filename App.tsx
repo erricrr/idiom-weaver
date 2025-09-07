@@ -57,9 +57,12 @@ const App: React.FC = () => {
       }
     };
 
-    // Initialize audio on first user interaction
+    // Initialize audio on first user interaction (with delay for mobile stability)
     const handleFirstInteraction = () => {
-      initializeAudio();
+      // Small delay to avoid interfering with form interactions on mobile
+      setTimeout(() => {
+        initializeAudio();
+      }, 100);
       // Remove event listeners after first interaction
       document.removeEventListener("click", handleFirstInteraction);
       document.removeEventListener("touchstart", handleFirstInteraction);

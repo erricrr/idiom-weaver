@@ -49,7 +49,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   const [detectionUncertain, setDetectionUncertain] = useState<boolean>(false);
   const lastDetectedInput = useRef<string>("");
 
-  // Auto-detect language when idiom input changes
+  // Auto-detect language when idiom input changes (with better mobile handling)
   useEffect(() => {
     const detectLanguageAsync = async () => {
       const trimmedInput = idiomInput.trim();
@@ -81,68 +81,84 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
         // Use hybrid detection which handles timeouts gracefully
         const detectionResult = await detectLanguageHybrid(trimmedInput);
 
-        setDetectedLanguage(detectionResult.language);
-        lastDetectedInput.current = trimmedInput;
+        // Check if component is still mounted and input hasn't changed
+        if (idiomInput.trim() === trimmedInput) {
+          setDetectedLanguage(detectionResult.language);
+          lastDetectedInput.current = trimmedInput;
 
-        if (detectionResult.language) {
-          console.log(
-            `✅ Language successfully detected as: ${detectionResult.language} (confidence: ${(detectionResult.confidence * 100).toFixed(1)}%)`,
-          );
-          setSourceLanguage(detectionResult.language);
-          setDetectionFailed(false);
-          setDetectionTimeout(false);
+          if (detectionResult.language) {
+            console.log(
+              `✅ Language successfully detected as: ${detectionResult.language} (confidence: ${(detectionResult.confidence * 100).toFixed(1)}%)`,
+            );
+            setSourceLanguage(detectionResult.language);
+            setDetectionFailed(false);
+            setDetectionTimeout(false);
 
-          // Set uncertainty based on confidence threshold
-          setDetectionUncertain(detectionResult.confidence < 0.7);
+            // Set uncertainty based on confidence threshold
+            setDetectionUncertain(detectionResult.confidence < 0.7);
 
-          // Auto-advance to target language selection when language is detected
-          if (currentStep === 2) {
-            setCurrentStep(3);
+            // Auto-advance to target language selection when language is detected
+            if (currentStep === 2) {
+              setCurrentStep(3);
+            }
+          } else {
+            // Language detection failed - unsupported language
+            console.warn(
+              `❌ Language detection failed - no language detected for: "${trimmedInput}"`,
+            );
+            setDetectionFailed(true);
+            setDetectionTimeout(false);
+            setDetectionUncertain(false);
+            setSourceLanguage(null);
           }
-        } else {
-          // Language detection failed - unsupported language
-          console.warn(
-            `❌ Language detection failed - no language detected for: "${trimmedInput}"`,
-          );
-          setDetectionFailed(true);
-          setDetectionTimeout(false);
-          setDetectionUncertain(false);
-          setSourceLanguage(null);
         }
       } catch (error) {
-        // Hybrid detection should handle most errors gracefully,
-        // but if we get here, fall back to heuristic as last resort
+        // Robust error handling to prevent app crashes
         console.error("❌ Unexpected language detection error:", error);
 
-        const fallbackResult = detectLanguageHeuristic(trimmedInput);
-        console.log(
-          `🔄 Emergency heuristic fallback: ${fallbackResult.language} (confidence: ${(fallbackResult.confidence * 100).toFixed(1)}%)`,
-        );
+        try {
+          const fallbackResult = detectLanguageHeuristic(trimmedInput);
+          console.log(
+            `🔄 Emergency heuristic fallback: ${fallbackResult.language} (confidence: ${(fallbackResult.confidence * 100).toFixed(1)}%)`,
+          );
 
-        setDetectedLanguage(fallbackResult.language);
-        lastDetectedInput.current = trimmedInput;
+          // Only update state if input hasn't changed
+          if (idiomInput.trim() === trimmedInput) {
+            setDetectedLanguage(fallbackResult.language);
+            lastDetectedInput.current = trimmedInput;
 
-        if (fallbackResult.language) {
-          setSourceLanguage(fallbackResult.language);
-          setDetectionFailed(false);
-          setDetectionTimeout(false);
-          setDetectionUncertain(true); // Mark as uncertain since this is emergency fallback
-          // Don't auto-advance on emergency fallback
-        } else {
-          setDetectionFailed(true);
-          setDetectionTimeout(false);
-          setDetectionUncertain(false);
-          setSourceLanguage(null);
+            if (fallbackResult.language) {
+              setSourceLanguage(fallbackResult.language);
+              setDetectionFailed(false);
+              setDetectionTimeout(false);
+              setDetectionUncertain(true); // Mark as uncertain since this is emergency fallback
+              // Don't auto-advance on emergency fallback
+            } else {
+              setDetectionFailed(true);
+              setDetectionTimeout(false);
+              setDetectionUncertain(false);
+              setSourceLanguage(null);
+            }
+          }
+        } catch (fallbackError) {
+          console.error("❌ Even fallback detection failed:", fallbackError);
+          // Graceful degradation - reset to initial state
+          if (idiomInput.trim() === trimmedInput) {
+            setDetectionFailed(true);
+            setDetectionTimeout(false);
+            setDetectionUncertain(false);
+            setSourceLanguage(null);
+          }
         }
       } finally {
         setIsDetectingLanguage(false);
       }
     };
 
-    // Debounce the detection to avoid too many API calls
-    const timeoutId = setTimeout(detectLanguageAsync, 500);
+    // Longer debounce for mobile devices (less aggressive)
+    const timeoutId = setTimeout(detectLanguageAsync, 1000);
     return () => clearTimeout(timeoutId);
-  }, [idiomInput, currentStep]);
+  }, [idiomInput]); // Removed currentStep to prevent infinite loops
 
   // Handle idiom input change and advance to next step
   const handleIdiomChange = (value: string) => {
@@ -150,6 +166,38 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
     clearDuplicateNotification();
     if (value.trim() && currentStep === 1) {
       setCurrentStep(2);
+    }
+  };
+
+  // Handle Enter key press on input for mobile flow
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+
+      const trimmedInput = idiomInput.trim();
+      if (!trimmedInput) return;
+
+      // If we have a detected source language and target languages, submit the form
+      if (sourceLanguage && targetLanguages.length > 0) {
+        const form = e.currentTarget.closest('form');
+        if (form) {
+          const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+          form.dispatchEvent(submitEvent);
+        }
+        return;
+      }
+
+      // If we have a source language but no target languages, advance to target language selection
+      if (sourceLanguage && targetLanguages.length === 0) {
+        setCurrentStep(3);
+        return;
+      }
+
+      // If no source language detected yet, advance to language selection step
+      if (!sourceLanguage && currentStep <= 2) {
+        setCurrentStep(2);
+        return;
+      }
     }
   };
 
@@ -230,6 +278,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
           type="text"
           value={idiomInput}
           onChange={handleIdiomInputChange}
+          onKeyDown={handleInputKeyDown}
           placeholder="e.g., Actions speak louder than words"
           className="w-full bg-slate-900 border border-slate-600 rounded-md py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
         />

@@ -361,13 +361,43 @@ export const detectLanguageHybrid = async (
   confidence: number;
   method: string;
 }> => {
-  console.log(`🔍 Starting hybrid detection for: "${text}"`);
+  // Enhanced input validation for mobile robustness
+  if (!text || typeof text !== "string") {
+    console.warn("Invalid input provided to detectLanguageHybrid");
+    return {
+      language: null,
+      confidence: 0,
+      method: "invalid-input",
+    };
+  }
 
-  // Always get heuristic result as fallback
-  const heuristicResult = detectLanguageHeuristic(text);
-  console.log(
-    `🧠 Heuristic result: ${heuristicResult.language} (${(heuristicResult.confidence * 100).toFixed(1)}%)`,
-  );
+  const trimmedText = text.trim();
+
+  if (trimmedText.length < 2) {
+    return {
+      language: null,
+      confidence: 0,
+      method: "text-too-short",
+    };
+  }
+
+  console.log(`🔍 Starting hybrid detection for: "${trimmedText}"`);
+
+  // Always get heuristic result as fallback (wrap in try-catch for safety)
+  let heuristicResult;
+  try {
+    heuristicResult = detectLanguageHeuristic(trimmedText);
+    console.log(
+      `🧠 Heuristic result: ${heuristicResult.language} (${(heuristicResult.confidence * 100).toFixed(1)}%)`,
+    );
+  } catch (heuristicError) {
+    console.error("Heuristic detection failed:", heuristicError);
+    return {
+      language: null,
+      confidence: 0,
+      method: "heuristic-failed",
+    };
+  }
 
   // Try API detection with shorter timeout
   try {
@@ -430,7 +460,18 @@ export const detectLanguageHybrid = async (
       method: apiResult ? "api-fallback" : "heuristic-fallback",
     };
   } catch (error) {
-    console.log(`🔄 API failed, using heuristic: ${heuristicResult.language}`);
+    console.log(`🔄 API failed, using heuristic: ${heuristicResult?.language}`, error);
+
+    // Ensure we have valid fallback data
+    if (!heuristicResult || !heuristicResult.language) {
+      console.error("Both API and heuristic detection failed");
+      return {
+        language: null,
+        confidence: 0,
+        method: "all-methods-failed",
+      };
+    }
+
     return {
       language: heuristicResult.language,
       confidence: heuristicResult.confidence * 0.7, // Reduce confidence when API completely fails

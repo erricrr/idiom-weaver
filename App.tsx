@@ -162,14 +162,20 @@ const App: React.FC = () => {
           setTimeout(() => {
             setIsLoading(true);
             setIsTransitioning(false);
-            // Auto-scroll to loading area
-            if (loadingAreaRef.current) {
-              loadingAreaRef.current.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-                inline: "nearest",
-              });
-            }
+
+            // Auto-scroll to loading area with a slight additional delay to ensure DOM updates
+            setTimeout(() => {
+              if (loadingAreaRef.current) {
+                console.log("🔄 Scrolling to loading area (partial reweave)...", loadingAreaRef.current);
+                loadingAreaRef.current.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                  inline: "nearest",
+                });
+              } else {
+                console.warn("⚠️ Loading area ref not found (partial reweave)");
+              }
+            }, 100);
           }, 500);
 
           try {
@@ -206,14 +212,20 @@ const App: React.FC = () => {
         setResults(null);
         setIsLoading(true);
         setIsTransitioning(false);
-        // Auto-scroll to loading area
-        if (loadingAreaRef.current) {
-          loadingAreaRef.current.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-            inline: "nearest",
-          });
-        }
+
+        // Auto-scroll to loading area with a slight additional delay to ensure DOM updates
+        setTimeout(() => {
+          if (loadingAreaRef.current) {
+            console.log("🔄 Scrolling to loading area...", loadingAreaRef.current);
+            loadingAreaRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+              inline: "nearest",
+            });
+          } else {
+            console.warn("⚠️ Loading area ref not found");
+          }
+        }, 100);
       }, 500);
       try {
         const result = await translateIdiomDirect(

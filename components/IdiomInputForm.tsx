@@ -225,13 +225,15 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
       setCurrentStep(4);
       setHasCompletedFlow(true);
 
-      // Auto-scroll to Weave button with a slight delay to allow for animation
+      // Auto-scroll to Weave button with gentle positioning
+      // Use a slight delay to allow the slide-in animation to start
       setTimeout(() => {
         weaveButtonRef.current?.scrollIntoView({
           behavior: "smooth",
-          block: "center",
+          block: "nearest", // More gentle than "center", avoids conflicts
+          inline: "nearest"
         });
-      }, 100);
+      }, 200);
     }
 
     // Go back a step if no target languages are selected

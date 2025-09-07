@@ -20,7 +20,8 @@ body {
 @media (max-height: 700px) {
     body {
         height: auto;
-        min-height: 100vh;
+        /* Prefer small viewport height on mobile to avoid phantom scroll */
+        min-height: 100svh;
     }
     #root {
         min-height: auto;
@@ -29,6 +30,7 @@ body {
 
 #root {
     background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
+    /* Fallback */
     min-height: 100vh;
     /* Remove flex that might be causing height issues */
 }
@@ -69,10 +71,30 @@ html::before {
     top: 0;
     left: 0;
     width: 100vw;
+    /* Fallback */
     height: 100vh;
     background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
     z-index: -1;
     pointer-events: none;
+}
+
+/* Prefer small/dynamic viewport heights on capable browsers to avoid extra scroll on mobile */
+@supports (height: 100svh) {
+    #root {
+        min-height: 100svh;
+    }
+    html::before {
+        height: 100svh;
+    }
+}
+
+@supports (height: 100dvh) {
+    #root {
+        min-height: 100dvh;
+    }
+    html::before {
+        height: 100dvh;
+    }
 }
 
 /* Fade in animation for consistent transitions */

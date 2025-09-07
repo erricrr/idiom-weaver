@@ -12,13 +12,25 @@ body {
     background-size: cover;
     background-repeat: no-repeat;
     overflow-x: hidden;
+    /* Prevent overscroll on mobile */
+    overscroll-behavior: none;
+}
+
+/* Mobile viewport fix */
+@media (max-height: 700px) {
+    body {
+        height: auto;
+        min-height: 100vh;
+    }
+    #root {
+        min-height: auto;
+    }
 }
 
 #root {
     background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    /* Remove flex that might be causing height issues */
 }
 
 * {

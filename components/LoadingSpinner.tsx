@@ -86,20 +86,16 @@ interface LoadingSpinnerProps {
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ isEntering = false, isPartialReweave = false, isVisible = true }) => {
     return (
         <div
-            className="transition-all duration-300 ease-out overflow-hidden"
+            className="flex flex-col items-center justify-center py-2 mb-2 transition-all duration-300 ease-out"
             style={{
-                height: isVisible ? '96px' : '0px',
-                opacity: isVisible ? 1 : 0
+                opacity: isVisible ? (isEntering ? 1 : 0.3) : 0,
+                transform: isVisible ? (isEntering ? 'translateY(0)' : 'translateY(4px)') : 'translateY(-10px)',
+                height: isVisible ? 'auto' : '0px',
+                overflow: 'hidden'
             }}
         >
-            <div className={`flex flex-col items-center justify-center gap-4 h-full transition-all duration-300 ease-out ${
-                isEntering
-                    ? 'transform translate-y-0 scale-100'
-                    : 'transform translate-y-2 scale-95'
-            }`}>
-                <div className="relative">
-                    <WeaverIcon className="w-16 h-16 text-cyan-400" />
-                </div>
+            <div className="relative">
+                <WeaverIcon className="w-12 h-12 text-cyan-400" />
             </div>
         </div>
     );

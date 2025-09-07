@@ -194,13 +194,12 @@ const App: React.FC = () => {
         clearDuplicateNotification();
       }
       setError(null);
-      setIsTransitioning(true);
-      setIsLoading(true); // Show loader immediately for responsive feedback
+      setIsLoading(true); // Show loader immediately - same as partial reweave
 
+      // Clear results after brief moment to let loader appear
       setTimeout(() => {
         setResults(null);
-        setIsTransitioning(false);
-      }, 300); // Reduced delay just for exit animation
+      }, 50);
       try {
         const result = await translateIdiomDirect(
           idiomInput,
@@ -234,7 +233,7 @@ const App: React.FC = () => {
   console.log("🎨 App component rendering...");
 
   return (
-    <div className="flex-1 font-sans text-white p-4 sm:p-6 md:p-8 overflow-x-hidden">
+    <div className="font-sans text-white p-4 sm:p-6 md:p-8 overflow-x-hidden">
       <div className="max-w-4xl mx-auto relative">
         <Header />
         {duplicateNotification && (
@@ -288,7 +287,7 @@ const App: React.FC = () => {
             isLoading={isLoading}
             clearDuplicateNotification={clearDuplicateNotification}
           />
-          <div ref={loadingAreaRef} className="mt-10 relative">
+          <div ref={loadingAreaRef} className="mt-6 relative min-h-[2.5rem]">
             <LoadingSpinner
               isEntering={isLoading}
               isPartialReweave={isPartialReweaveInProgress}
@@ -296,9 +295,9 @@ const App: React.FC = () => {
             />
             {error && <ErrorAlert message={error} />}
             {results && (
-              <ResultsDisplay results={results} isExiting={isTransitioning && !isPartialReweaveInProgress} />
+              <ResultsDisplay results={results} isExiting={false} />
             )}
-            {!isLoading && !error && !results && !duplicateNotification && (
+            {!error && !results && !duplicateNotification && (
               <Welcome isExiting={isTransitioning} />
             )}
           </div>

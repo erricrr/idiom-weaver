@@ -48,6 +48,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
   const [detectionTimeout, setDetectionTimeout] = useState<boolean>(false);
   const [detectionUncertain, setDetectionUncertain] = useState<boolean>(false);
   const lastDetectedInput = useRef<string>("");
+  const weaveButtonRef = useRef<HTMLDivElement>(null);
 
   // Auto-detect language when idiom input changes (with better mobile handling)
   useEffect(() => {
@@ -223,6 +224,14 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
     if (newTargetLanguages.length > 0 && currentStep === 3) {
       setCurrentStep(4);
       setHasCompletedFlow(true);
+
+      // Auto-scroll to Weave button with a slight delay to allow for animation
+      setTimeout(() => {
+        weaveButtonRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 100);
     }
 
     // Go back a step if no target languages are selected
@@ -556,6 +565,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
       {/* Step 4: Submit Button - Only visible after target languages are selected */}
       {(currentStep >= 4 || hasCompletedFlow) && (
         <div
+          ref={weaveButtonRef}
           className={`text-center ${!hasCompletedFlow && currentStep === 4 ? "animate-in slide-in-from-top-2 duration-300" : ""}`}
         >
           <button

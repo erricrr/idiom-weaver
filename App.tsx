@@ -89,6 +89,17 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // Ensure results are brought into view when they appear
+  useEffect(() => {
+    if (results && loadingAreaRef.current) {
+      loadingAreaRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest",
+      });
+    }
+  }, [results]);
+
   const clearDuplicateNotification = useCallback(() => {
     setIsNotificationVisible(false);
     setTimeout(() => {

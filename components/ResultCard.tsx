@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { IdiomTranslation } from "../types";
 import { TTSService } from "../services/ttsService";
@@ -24,18 +24,32 @@ const ResultCard: React.FC<ResultCardProps> = ({
   const [isRetrying, setIsRetrying] = useState(false);
   const [ttsService] = useState(() => new TTSService());
 
-  // Prevent background scrolling when modal is open
+  // Prevent background scrolling and preserve position when modal is open
+  const scrollYRef = useRef<number>(0);
   useEffect(() => {
+    const { body, documentElement } = document;
     if (isModalOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
+      scrollYRef.current = window.scrollY || window.pageYOffset;
+      // Disable smooth scrolling to avoid animated jumps
+      const previousScrollBehavior = documentElement.style.scrollBehavior;
+      documentElement.style.scrollBehavior = 'auto';
+      // Lock body position and preserve scroll
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollYRef.current}px`;
+      body.style.width = '100%';
+      body.style.overflow = 'hidden';
 
-    // Cleanup function to restore scrolling when component unmounts
-    return () => {
-      document.body.style.overflow = "unset";
-    };
+      return () => {
+        // Restore styles
+        body.style.position = '';
+        body.style.top = '';
+        body.style.width = '';
+        body.style.overflow = '';
+        documentElement.style.scrollBehavior = previousScrollBehavior;
+        // Restore scroll position
+        window.scrollTo(0, scrollYRef.current);
+      };
+    }
   }, [isModalOpen]);
 
   const handleTextClick = async (isRetry = false) => {
@@ -124,8 +138,15 @@ const ResultCard: React.FC<ResultCardProps> = ({
       <div className="relative">
         {/* Main card with fixed height structure */}
         <div
-          className={`bg-slate-800/60 p-4 sm:p-6 rounded-lg shadow-xl border-t-4 ${borderColor} flex flex-col h-full transform transition-all duration-300 hover:scale-105 hover:shadow-2xl`}
+          className={`bg-slate-800/60 p-4 sm:p-6 rounded-lg shadow-xl flex flex-col h-full transform transition-all duration-300 hover:scale-105 hover:shadow-2xl overflow-hidden relative`}
         >
+          {/* Top accent bar (replaces border-top to avoid corner bleed) */}
+          {(() => {
+            const accentBarBackgroundClass = borderColor.replace('border-', 'bg-');
+            return (
+              <div className={`absolute top-0 left-0 right-0 h-1 ${accentBarBackgroundClass}`} />
+            );
+          })()}
           {/* Language name and main translation - always visible */}
           <div className="flex-grow">
             <h3
@@ -182,6 +203,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
           {/* Info button - positioned at bottom, always visible */}
           <div className="mt-auto">
             <button
+              type="button"
               onClick={openModal}
               className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-700/50 hover:bg-slate-600/50 rounded-md text-slate-300 text-sm font-medium transition-all duration-200 hover:text-white group font-sans"
               aria-label="View detailed information about this translation"

@@ -69,6 +69,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, isExiting = fa
         ? 'transform translate-y-full opacity-0'
         : 'transform translate-y-0 opacity-100 animate-fade-in'
     }`}>
+        {/* Hidden aggregator to ensure Tailwind includes bg- classes for accent bars */}
+        <span className="hidden bg-purple-500 bg-pink-500 bg-red-600 bg-blue-500 bg-yellow-400 bg-gray-200 bg-green-500 bg-orange-500 bg-slate-500" />
         <h2
           ref={culturalEquivalentsRef}
           id="cultural-equivalents"

@@ -68,14 +68,13 @@ h6 {
 html::before {
     content: "";
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    /* Fallback */
-    height: 100vh;
+    inset: 0;
     background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
     z-index: -1;
     pointer-events: none;
+    /* Reduce sub-pixel seams on mobile browsers */
+    backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
 /* Prefer small/dynamic viewport heights on capable browsers to avoid extra scroll on mobile */

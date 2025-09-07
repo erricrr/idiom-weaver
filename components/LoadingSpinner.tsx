@@ -79,14 +79,17 @@ const WeaverIcon: React.FC<{ className?: string }> = ({ className }) => (
 
 interface LoadingSpinnerProps {
   isEntering?: boolean;
+  isPartialReweave?: boolean;
 }
 
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ isEntering = false }) => {
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ isEntering = false, isPartialReweave = false }) => {
     return (
-        <div className={`flex flex-col items-center justify-center gap-4 py-4 transition-all duration-500 ease-in-out ${
+        <div className={`flex flex-col items-center justify-center gap-4 py-4 transition-all duration-300 ease-out ${
             isEntering
                 ? 'transform translate-y-0 opacity-100'
-                : 'transform -translate-y-full opacity-0'
+                : isPartialReweave
+                    ? 'transform translate-y-0 opacity-0' // Fade in/out without sliding for partial re-weaves
+                    : 'transform -translate-y-full opacity-0' // Slide animation for full re-weaves
         }`}>
             <div className="relative">
                 <WeaverIcon className="w-16 h-16 text-cyan-400" />

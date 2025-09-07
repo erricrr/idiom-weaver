@@ -22,6 +22,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+  const [isPartialReweaveInProgress, setIsPartialReweaveInProgress] = useState<boolean>(false);
   const [lastSubmittedValues, setLastSubmittedValues] = useState<{
     idiom: string;
     sourceLanguage: Language | null;
@@ -158,14 +159,10 @@ const App: React.FC = () => {
           );
 
           setError(null);
-          setIsTransitioning(true);
-          setTimeout(() => {
-            setIsLoading(true);
-            setIsTransitioning(false);
+          setIsPartialReweaveInProgress(true);
+          setIsLoading(true);
 
-            // Note: Auto-scroll to loading area removed to improve mobile UX
-            // Mobile users prefer to control their own scrolling behavior
-          }, 500);
+          // Note: No transition animation for partial re-weaves to keep existing results visible
 
           try {
             // Use partial translation to only translate new languages
@@ -187,6 +184,7 @@ const App: React.FC = () => {
             setError("Sorry, we hit a snag. Please try again.");
           } finally {
             setIsLoading(false);
+            setIsPartialReweaveInProgress(false);
           }
           return;
         }
@@ -292,11 +290,11 @@ const App: React.FC = () => {
             isLoading={isLoading}
             clearDuplicateNotification={clearDuplicateNotification}
           />
-          <div ref={loadingAreaRef} className="mt-10 relative">
-            {isLoading && <LoadingSpinner isEntering={!isTransitioning} />}
+          <div ref={loadingAreaRef} className="mt-10 relative transition-all duration-300 ease-out">
+            {isLoading && <LoadingSpinner isEntering={!isTransitioning} isPartialReweave={isPartialReweaveInProgress} />}
             {error && <ErrorAlert message={error} />}
             {results && (
-              <ResultsDisplay results={results} isExiting={isTransitioning} />
+              <ResultsDisplay results={results} isExiting={isTransitioning && !isPartialReweaveInProgress} />
             )}
             {!isLoading && !error && !results && !duplicateNotification && (
               <Welcome isExiting={isTransitioning} />

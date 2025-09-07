@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ApiResult } from '../types';
 import ResultCard from './ResultCard';
 
@@ -22,16 +22,33 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, isExiting = fa
   const resultEntries = Object.entries(results).sort(([a], [b]) => a.localeCompare(b));
   const culturalEquivalentsRef = useRef<HTMLDivElement>(null);
   const previousResultKeysRef = useRef<string>('');
+  const [newlyAddedCards, setNewlyAddedCards] = useState<Set<string>>(new Set());
 
   // Auto-scroll to Cultural Equivalents section when results first appear
   // Skip auto-scroll during partial re-weaves to prevent jerky mobile behavior
   useEffect(() => {
     const currentResultKeys = Object.keys(results).sort().join(',');
+    const previousKeys = previousResultKeysRef.current.split(',').filter(k => k);
+    const currentKeys = currentResultKeys.split(',').filter(k => k);
     const isPartialUpdate = previousResultKeysRef.current !== '' &&
                            currentResultKeys.includes(previousResultKeysRef.current);
 
-    if (culturalEquivalentsRef.current && !isPartialUpdate) {
-      // Only auto-scroll when it's a fresh set of results, not a partial update
+    // Identify newly added cards
+    if (isPartialUpdate) {
+      const newCards = currentKeys.filter(key => !previousKeys.includes(key));
+      if (newCards.length > 0) {
+        setNewlyAddedCards(new Set(newCards));
+        // Remove the "new" status after animation completes
+        setTimeout(() => setNewlyAddedCards(new Set()), 500);
+      }
+    } else {
+      // For fresh results, no cards are "newly added"
+      setNewlyAddedCards(new Set());
+    }
+
+    if (culturalEquivalentsRef.current) {
+      // Auto-scroll to results for both fresh results and partial updates
+      // This ensures new results are always in full viewport
       culturalEquivalentsRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
@@ -60,17 +77,30 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, isExiting = fa
         >
           Cultural Equivalents
         </h2>
-        <div className="flex flex-wrap gap-4 sm:gap-6 justify-center">
-            {resultEntries.map(([langKey, data]) => (
-                <div key={langKey} className="w-full sm:w-80 lg:w-96">
-                    <ResultCard
-                        language={langKey.charAt(0).toUpperCase() + langKey.slice(1)}
-                        data={data}
-                        borderColor={languageColors[langKey.toLowerCase()] || 'border-slate-500'}
-                        isSingleResult={resultEntries.length === 1}
-                    />
-                </div>
-            ))}
+        <div className="flex flex-wrap gap-4 sm:gap-6 justify-center transition-all duration-300 ease-out">
+            {resultEntries.map(([langKey, data]) => {
+                const isNewCard = newlyAddedCards.has(langKey);
+                return (
+                    <div
+                        key={langKey}
+                        className={`w-full sm:w-80 lg:w-96 transition-all duration-500 ease-out ${
+                            isNewCard
+                                ? 'transform translate-y-0 opacity-100 animate-fade-in'
+                                : 'transform translate-y-0 opacity-100'
+                        }`}
+                        style={{
+                            animation: isNewCard ? 'slideInUp 0.5s ease-out' : 'none'
+                        }}
+                    >
+                        <ResultCard
+                            language={langKey.charAt(0).toUpperCase() + langKey.slice(1)}
+                            data={data}
+                            borderColor={languageColors[langKey.toLowerCase()] || 'border-slate-500'}
+                            isSingleResult={resultEntries.length === 1}
+                        />
+                    </div>
+                );
+            })}
         </div>
     </div>
   );

@@ -5,6 +5,9 @@ export const detectLanguage = async (
   text: string,
   timeoutMs: number = 5000,
 ): Promise<Language | null> => {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  console.log(`🔍 Language detection starting - Device: ${isMobile ? 'Mobile' : 'Desktop'}, Text: "${text.trim()}"`);
+
   // Don't attempt API detection for very short text
   if (text.trim().length < 4) {
     console.log("Text too short for API detection, using heuristic");
@@ -15,23 +18,29 @@ export const detectLanguage = async (
     // Create AbortController for better timeout handling
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
+      console.log(`⏱️ Language detection timeout after ${timeoutMs}ms`);
       controller.abort();
     }, timeoutMs);
 
     // Use Google Translate's language detection API with correct parameters
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`;
 
+    console.log(`🌐 Making API request to: ${url}`);
+
     const response = await fetch(url, {
       signal: controller.signal,
+      mode: 'cors', // Explicit CORS mode for mobile compatibility
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        // Use mobile-friendly user agent that matches the device
+        "User-Agent": navigator.userAgent ||
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
         Accept: "application/json, text/plain, */*",
         "Accept-Language": "en-US,en;q=0.9",
       },
     });
 
     clearTimeout(timeoutId);
+    console.log(`📡 API response status: ${response.status} ${response.statusText}`);
 
     if (!response.ok) {
       console.warn(
@@ -128,14 +137,20 @@ export const detectLanguage = async (
       return detectLanguageHeuristic(text).language;
     }
   } catch (error) {
-    // Handle different types of errors gracefully
+    // Enhanced error handling for mobile-specific issues
+    console.error("🚨 Language detection API error:", error);
+
     if (error instanceof Error) {
       if (error.name === "AbortError") {
         console.log("⏱️ Google API timeout, using heuristic detection");
-      } else if (error.message.includes("fetch")) {
+      } else if (error.message.includes("CORS") || error.message.includes("cors")) {
+        console.log("🚫 CORS error on mobile browser, using heuristic detection");
+      } else if (error.message.includes("fetch") || error.message.includes("network")) {
         console.log(
-          "🌐 Network error with Google API, using heuristic detection",
+          "🌐 Network error with Google API (possibly mobile connectivity), using heuristic detection",
         );
+      } else if (error.message.includes("Failed to fetch")) {
+        console.log("📵 Mobile network issue or CORS block, using heuristic detection");
       } else {
         console.log(
           `🔄 Google API error: ${error.message}, using heuristic detection`,
@@ -144,7 +159,9 @@ export const detectLanguage = async (
     }
 
     // Always fall back to heuristic detection instead of throwing
-    return detectLanguageHeuristic(text).language;
+    const fallbackResult = detectLanguageHeuristic(text).language;
+    console.log(`🧠 Using heuristic fallback result: ${fallbackResult}`);
+    return fallbackResult;
   }
 };
 
@@ -171,13 +188,16 @@ export const detectLanguageHeuristic = (
     [Language.Dutch]: 0,
   };
 
-  // English patterns (common words, contractions, idioms)
+  // Enhanced English patterns (common words, contractions, idioms)
   const englishPatterns = [
     /\b(the|and|or|but|in|on|at|to|for|of|with|by|a|an|is|are|was|were|be|been|have|has|had|do|does|did|will|would|could|should|can|may|might|must)\b/g,
     /\b(it's|don't|won't|can't|shouldn't|wouldn't|couldn't|isn't|aren't|wasn't|weren't|haven't|hasn't|hadn't)\b/g,
     /\b(when|where|what|who|why|how|which|that|this|these|those)\b/g,
     /\b(speak|word|time|people|make|get|take|come|go|see|know|think|say|look|use|find|give|tell|work|call|try|ask|need|feel|become|leave|put)\b/g,
     /\bing\b/g, // English -ing endings are very distinctive
+    // Common English idiom patterns
+    /\b(actions speak louder|break a leg|piece of cake|bite the bullet|hit the nail|spill the beans|break the ice|cost an arm|kill two birds|let the cat out)\b/g,
+    /\b(than|through|though|their|there|they're|where|were|your|you're)\b/g, // English-specific homophones/confusables
   ];
 
   englishPatterns.forEach((pattern) => {
@@ -381,14 +401,21 @@ export const detectLanguageHybrid = async (
     };
   }
 
-  console.log(`🔍 Starting hybrid detection for: "${trimmedText}"`);
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  console.log(`🔍 Starting hybrid detection for: "${trimmedText}" (${isMobile ? 'Mobile' : 'Desktop'})`);
 
   // Always get heuristic result as fallback (wrap in try-catch for safety)
   let heuristicResult;
   try {
     heuristicResult = detectLanguageHeuristic(trimmedText);
+
+    // Boost confidence on mobile since heuristic may be more reliable than API
+    if (isMobile && heuristicResult.confidence > 0.5) {
+      heuristicResult.confidence = Math.min(heuristicResult.confidence + 0.2, 1.0);
+    }
+
     console.log(
-      `🧠 Heuristic result: ${heuristicResult.language} (${(heuristicResult.confidence * 100).toFixed(1)}%)`,
+      `🧠 Heuristic result: ${heuristicResult.language} (${(heuristicResult.confidence * 100).toFixed(1)}% ${isMobile ? 'mobile-boosted' : ''})`,
     );
   } catch (heuristicError) {
     console.error("Heuristic detection failed:", heuristicError);
@@ -399,9 +426,19 @@ export const detectLanguageHybrid = async (
     };
   }
 
-  // Try API detection with shorter timeout
+  // On mobile, if heuristic has high confidence, skip API to avoid CORS issues
+  if (isMobile && heuristicResult.confidence > 0.8) {
+    console.log(`📱 Mobile high-confidence heuristic bypass: ${heuristicResult.language}`);
+    return {
+      language: heuristicResult.language,
+      confidence: heuristicResult.confidence,
+      method: "mobile-heuristic-priority",
+    };
+  }
+
+  // Try API detection with mobile-friendly timeout
   try {
-    const apiResult = await detectLanguage(text, 3000);
+    const apiResult = await detectLanguage(trimmedText, 7000); // Longer timeout for mobile networks
     console.log(`🌐 API result: ${apiResult}`);
 
     // If both methods agree, high confidence

@@ -312,7 +312,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                     </div>
                     <span className="text-xs text-slate-400 flex items-center space-x-1">
                       <span>
-                        {detectionUncertain ? "Not feeling confident" : "Detected"}
+                        {detectionUncertain ? "Uncertain (change if needed)" : "Locked in"}
                       </span>
                       {!detectionUncertain && (
                         <svg
@@ -355,7 +355,7 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
                     {showLanguageOverride
                       ? "Hide options"
                       : detectionUncertain
-                        ? "Select correct language"
+                        ? "Change language"
                         : "Wrong language?"}
                   </button>
                 </div>

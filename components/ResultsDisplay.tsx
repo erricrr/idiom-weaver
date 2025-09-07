@@ -46,15 +46,15 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, isExiting = fa
       setNewlyAddedCards(new Set());
     }
 
-    if (culturalEquivalentsRef.current) {
-      // Auto-scroll to results for both fresh results and partial updates
-      // This ensures new results are always in full viewport
-      culturalEquivalentsRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-        inline: 'nearest'
-      });
-    }
+    // Temporarily disable auto-scroll to eliminate conflicts with loader animation
+    // TODO: Re-enable with better timing coordination
+    // if (culturalEquivalentsRef.current) {
+    //   culturalEquivalentsRef.current.scrollIntoView({
+    //     behavior: 'smooth',
+    //     block: 'start',
+    //     inline: 'nearest'
+    //   });
+    // }
 
     previousResultKeysRef.current = currentResultKeys;
   }, [results]);

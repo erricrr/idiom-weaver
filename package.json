@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "start": "npm run build",
     "install:deps": "npm install",
-    "setup": "npm run install:deps && echo 'Please create a .env file with your GEMINI_API_KEY'",
+    "setup": "npm run install:deps && echo 'Please create a .env file with GEMINI_API_KEY (no VITE_ prefix needed)'",
     "lint": "echo 'Linting not configured yet'",
     "clean": "rm -rf dist node_modules",
     "netlify:build": "npm run build",

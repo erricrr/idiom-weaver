@@ -1,35 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Language, ApiResult } from "../types";
-
-// Get API key from environment variables (Vite prefix required)
-const getApiKey = (): string => {
-  // Try Vite environment variable first
-  let apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-
-  // Fallback to process.env for Node.js compatibility
-  if (!apiKey && typeof process !== 'undefined') {
-    apiKey = process.env.GEMINI_API_KEY;
-  }
-
-  if (!apiKey) {
-    throw new Error(
-      "Gemini API key not found. Please add VITE_GEMINI_API_KEY to your .env file."
-    );
-  }
-
-  return apiKey;
-};
-
-// Initialize Gemini AI
-const initializeGemini = () => {
-  try {
-    const apiKey = getApiKey();
-    return new GoogleGenerativeAI(apiKey);
-  } catch (error) {
-    console.error("Failed to initialize Gemini:", error);
-    throw error;
-  }
-};
 
 // Retry configuration
 const MAX_RETRIES = 3;
@@ -44,102 +13,82 @@ export const translateIdiomDirect = async (
 ): Promise<ApiResult> => {
   let lastError: Error;
 
-  console.log(`🚀 Direct Gemini translation: "${idiom}" (${sourceLanguage}) → [${targetLanguages.join(", ")}]`);
+  console.log(`🚀 Translation via Netlify function: "${idiom}" (${sourceLanguage}) → [${targetLanguages.join(", ")}]`);
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       console.log(`🔄 Translation attempt ${attempt}/${MAX_RETRIES}`);
 
-      const genAI = initializeGemini();
-      const targetLanguageList = targetLanguages.join(", ");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-      const prompt = `You are an expert linguist and cultural specialist. Find equivalent idioms for "${idiom}" from ${sourceLanguage} in these languages: ${targetLanguageList}.
-
-CRITICAL: For each language, you MUST provide all 3 fields:
-
-1. "idiom" - The culturally equivalent phrase in that language
-2. "literal_translation" - MANDATORY word-for-word English translation (NEVER empty!)
-3. "explanation" - Rich cultural context including origins, historical background, and why this metaphor is used
-
-EXAMPLE for Spanish "llueve a cántaros":
-- literal_translation: "it rains pitchers" (NOT empty, NOT just quotes)
-- explanation: "Dating back to 16th century Spain, this idiom uses the image of water pouring from large clay vessels (cántaros) that were essential in Spanish households. The metaphor reflects the Mediterranean culture's relationship with precious water resources..."
-
-OUTPUT FORMAT (JSON with lowercase language keys):
-{
-  "spanish": {
-    "idiom": "llueve a cántaros",
-    "literal_translation": "it rains pitchers",
-    "explanation": "Dating back to 16th century Spain..."
-  }
-}
-
-REQUIREMENTS:
-- literal_translation field must ALWAYS contain the actual word-for-word translation
-- Explanations must include cultural/historical origins (100-150 words)
-- Use proper diacritics and authentic spelling
-- If no exact equivalent exists, provide closest cultural match and explain the difference`;
-
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-        generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.3,
-          topP: 0.8,
-          topK: 40,
+      const response = await fetch("/api/translate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          idiom,
+          sourceLanguage,
+          targetLanguages,
+        }),
+        signal: controller.signal,
       });
 
-      console.log("📡 Calling Gemini API directly...");
+      clearTimeout(timeoutId);
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const jsonText = response.text();
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = `HTTP error! status: ${response.status}`;
 
-      console.log("📥 Raw API response received, length:", jsonText?.length || 0);
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || errorMessage;
+        } catch {
+          // If parsing fails, use the raw text
+          errorMessage = errorText || errorMessage;
+        }
 
-      if (!jsonText) {
-        throw new Error("Empty response from Gemini API");
+        if (response.status >= 500 && attempt < MAX_RETRIES) {
+          console.warn(
+            `⚠️ Server error (${response.status}), retrying in ${RETRY_DELAY}ms...`,
+          );
+          await sleep(RETRY_DELAY * attempt);
+          continue;
+        }
+
+        throw new Error(errorMessage);
       }
 
-      const parsedResult = JSON.parse(jsonText);
+      const result: ApiResult = await response.json();
 
-      if (!parsedResult || typeof parsedResult !== "object") {
-        throw new Error("Invalid JSON structure received from Gemini API");
+      if (!result || typeof result !== "object") {
+        throw new Error("Invalid response format from server");
       }
 
-      console.log("✅ Direct translation completed successfully");
-      return parsedResult as ApiResult;
+      console.log("✅ Translation successful");
+      return result;
 
     } catch (error) {
       lastError = error as Error;
       console.error(`❌ Translation attempt ${attempt} failed:`, error);
 
       if (error instanceof Error) {
-        // Handle specific error types
-        if (error.message.includes("API key")) {
+        if (error.name === "AbortError") {
           lastError = new Error(
-            "Invalid or expired Gemini API key. Please check your VITE_GEMINI_API_KEY in .env file."
-          );
-          break; // Don't retry API key errors
-        } else if (
-          error.message.includes("quota") ||
-          error.message.includes("limit")
-        ) {
-          lastError = new Error(
-            "Gemini API quota exceeded. Please try again later or check your API limits."
+            "Translation request timed out. Please try again.",
           );
         } else if (
-          error.message.includes("network") ||
-          error.message.includes("fetch")
+          error.message.includes("Failed to fetch") ||
+          error.message.includes("NetworkError")
         ) {
           lastError = new Error(
-            "Network connection failed. Please check your internet connection and try again."
+            "Network connection failed. Please check your internet connection and try again.",
           );
         }
       }
 
-      if (attempt < MAX_RETRIES && !error.message.includes("API key")) {
+      if (attempt < MAX_RETRIES && !error.message.includes("400")) {
         console.log(`⏳ Retrying in ${RETRY_DELAY * attempt}ms...`);
         await sleep(RETRY_DELAY * attempt);
         continue;
@@ -151,7 +100,7 @@ REQUIREMENTS:
 
   console.error("❌ All translation attempts failed:", lastError);
   throw (
-    lastError || new Error("Failed to get idiom translations from Gemini API.")
+    lastError || new Error("Failed to get idiom translations from the API.")
   );
 };
 
@@ -204,18 +153,18 @@ export const translateIdiomPartialDirect = async (
   }
 };
 
-// Environment check helper
+// Simple function to check if the API endpoint is available
 export const checkGeminiSetup = (): { isConfigured: boolean; message: string } => {
-  try {
-    const apiKey = getApiKey();
+  // Since we're using Netlify functions, we just check if we're in a browser environment
+  if (typeof window !== 'undefined') {
     return {
       isConfigured: true,
-      message: "Gemini API key found and configured correctly."
+      message: "Translation service is ready."
     };
-  } catch (error) {
+  } else {
     return {
       isConfigured: false,
-      message: error instanceof Error ? error.message : "Unknown configuration error."
+      message: "Translation service is not available in this environment."
     };
   }
 };

@@ -15,14 +15,28 @@ export const handler = async (event, context) => {
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type, Accept, Cache-Control",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
         "Access-Control-Max-Age": "86400",
       },
       body: "",
     };
   }
 
-  // Only allow GET requests
+  // Handle HEAD requests (for validation)
+  if (event.httpMethod === "HEAD") {
+    console.log("Handling HEAD request for audio validation");
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "audio/mpeg",
+        "Cache-Control": "public, max-age=3600",
+      },
+      body: "",
+    };
+  }
+
+  // Only allow GET requests for actual audio
   if (event.httpMethod !== "GET") {
     console.warn(`Method not allowed: ${event.httpMethod}`);
     return {

@@ -26,13 +26,31 @@ const ResultCard: React.FC<ResultCardProps> = ({
 
   // Prevent background scrolling and preserve position when modal is open
   const scrollYRef = useRef<number>(0);
+  const originalBodyStyleRef = useRef<{
+    position: string;
+    top: string;
+    width: string;
+    overflow: string;
+  }>({ position: '', top: '', width: '', overflow: '' });
+
   useEffect(() => {
     const { body, documentElement } = document;
     if (isModalOpen) {
+      // Store current scroll position
       scrollYRef.current = window.scrollY || window.pageYOffset;
+
+      // Store original body styles
+      originalBodyStyleRef.current = {
+        position: body.style.position,
+        top: body.style.top,
+        width: body.style.width,
+        overflow: body.style.overflow,
+      };
+
       // Disable smooth scrolling to avoid animated jumps
       const previousScrollBehavior = documentElement.style.scrollBehavior;
       documentElement.style.scrollBehavior = 'auto';
+
       // Lock body position and preserve scroll
       body.style.position = 'fixed';
       body.style.top = `-${scrollYRef.current}px`;
@@ -40,14 +58,20 @@ const ResultCard: React.FC<ResultCardProps> = ({
       body.style.overflow = 'hidden';
 
       return () => {
-        // Restore styles
-        body.style.position = '';
-        body.style.top = '';
-        body.style.width = '';
-        body.style.overflow = '';
+        // Restore original styles
+        body.style.position = originalBodyStyleRef.current.position;
+        body.style.top = originalBodyStyleRef.current.top;
+        body.style.width = originalBodyStyleRef.current.width;
+        body.style.overflow = originalBodyStyleRef.current.overflow;
         documentElement.style.scrollBehavior = previousScrollBehavior;
-        // Restore scroll position
-        window.scrollTo(0, scrollYRef.current);
+
+        // Only restore scroll position if we're still at the top (scroll position 0)
+        // This prevents unwanted scrolling when the modal close doesn't actually change scroll
+        requestAnimationFrame(() => {
+          if (window.scrollY === 0 && scrollYRef.current > 0) {
+            window.scrollTo(0, scrollYRef.current);
+          }
+        });
       };
     }
   }, [isModalOpen]);

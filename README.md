@@ -1,10 +1,11 @@
-# Idiom Weaver 🌐
+[![Netlify Status](https://api.netlify.com/api/v1/badges/ef0e8454-aabd-4dfc-bf50-7ef8622fd174/deploy-status)](https://app.netlify.com/projects/idiom-weaver/deploys)
+
+# Idiom Weaver
 
 Discover how different cultures express the same ideas. Enter an idiom, saying, or common phrase, choose your languages, and find its cross-cultural equivalents.
 
-![Idiom Weaver Screenshot](https://via.placeholder.com/800x400/1e293b/23d0f1?text=Idiom+Weaver)
 
-## 🚀 Features
+## Features
 
 - **Cross-Cultural Translation**: Find authentic cultural equivalents, not literal translations
 - **Language Detection**: Automatically detects the language of your input phrase
@@ -13,12 +14,13 @@ Discover how different cultures express the same ideas. Enter an idiom, saying, 
 - **Progressive UI**: Intuitive step-by-step interface
 - **Powered by Gemini AI**: Intelligent and accurate cultural context
 
-## 🛠️ Quick Setup
+## Quick Setup
 
 ### Prerequisites
 
 - Node.js 18+ and npm
 - A Google Gemini API key ([Get one here](https://makersuite.google.com/app/apikey))
+- Netlify CLI (for local development with functions)
 
 ### Installation
 
@@ -26,42 +28,59 @@ Discover how different cultures express the same ideas. Enter an idiom, saying, 
    ```bash
    git clone <your-repo-url>
    cd idiom-weaver
-   npm run setup
+   npm install
    ```
 
-2. **Set up environment variables**
+2. **Install dependencies for Netlify functions**
    ```bash
-   cp .env.example .env
-   # Edit .env and add your GEMINI_API_KEY
+   cd netlify/functions
+   npm install
+   cd ../..
    ```
 
-3. **Start the development servers**
+3. **Set up environment variables**
    ```bash
-   npm run dev:full
+   # Create .env file in the root directory
+   echo "GEMINI_API_KEY=your_gemini_api_key_here" > .env
    ```
 
-4. **Open your browser**
-   - Frontend: http://localhost:5173
-   - Backend: http://localhost:3001
+4. **Install Netlify CLI (if not already installed)**
+   ```bash
+   npm install -g netlify-cli
+   ```
 
-## 🔧 Environment Variables
+5. **Start the development server**
+   ```bash
+   # This will start both the Vite dev server and Netlify functions
+   npm run netlify:dev
+   ```
+
+   **Alternative: Start just the frontend (without backend functions)**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open your browser**
+   - Full app with functions: http://localhost:8888
+   - Frontend only: http://localhost:5173
+
+## Environment Variables
 
 Create a `.env` file in the root directory:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
-PORT=3001
 ```
 
-## 📜 Scripts
+## Scripts
 
-- `npm run dev` - Start frontend development server
-- `npm run server` - Start backend server
-- `npm run dev:full` - Start both frontend and backend
+- `npm run dev` - Start frontend development server only
+- `npm run netlify:dev` - Start both frontend and Netlify functions (recommended)
 - `npm run build` - Build for production
-- `npm run start` - Build and start production server
+- `npm run netlify:build` - Build for Netlify deployment
+- `npm run setup` - Install dependencies and show setup instructions
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -71,9 +90,10 @@ PORT=3001
 
 **Solutions**:
 - ✅ Ensure your `.env` file exists with a valid `GEMINI_API_KEY`
-- ✅ Check that the backend server is running (`npm run server`)
+- ✅ Make sure you're running `npm run netlify:dev` (not just `npm run dev`)
 - ✅ Verify your Gemini API key is valid at [Google AI Studio](https://makersuite.google.com/)
-- ✅ Check server logs for detailed error messages
+- ✅ Check Netlify function logs in the terminal for detailed error messages
+- ✅ Try restarting the Netlify dev server
 
 #### 2. "Tailwind CSS should not be used in production" warning
 
@@ -101,7 +121,7 @@ PORT=3001
 
 To enable detailed logging:
 
-1. **Backend logs**: Check the server console for API errors
+1. **Netlify function logs**: Check the terminal where `netlify dev` is running
 2. **Frontend logs**: Open browser dev tools → Console tab
 3. **Network issues**: Check browser dev tools → Network tab
 
@@ -110,33 +130,24 @@ To enable detailed logging:
 If you get port conflicts:
 
 ```bash
-# Change the port in .env
-PORT=3002
+# Netlify dev uses port 8888 by default
+# To change it, use:
+netlify dev --port 9999
 
 # Or kill existing processes
-lsof -ti:3001 | xargs kill -9
-```
-
-## 🏗️ Architecture
-
-```
-idiom-weaver/
-├── components/          # React components
-├── services/           # API services (Gemini, TTS, language detection)
-├── src/               # CSS and assets
-├── server.js          # Express backend
-├── App.tsx            # Main React app
-└── index.tsx          # App entry point
+lsof -ti:8888 | xargs kill -9
+lsof -ti:5173 | xargs kill -9
 ```
 
 ### Key Files
 
-- **`server.js`** - Express server handling Gemini API and TTS proxy
-- **`services/geminiService.ts`** - Frontend service for API calls
+- **`netlify/functions/translate.js`** - Serverless function for Gemini API translation
+- **`netlify/functions/tts.js`** - Serverless function for TTS proxy
+- **`services/geminiDirectService.ts`** - Frontend service for API calls
 - **`services/ttsService.ts`** - Text-to-speech functionality
 - **`services/languageDetectionService.ts`** - Language detection logic
 
-## 🌍 Supported Languages
+## Supported Languages
 
 | Language | Code | TTS Support |
 |----------|------|-------------|
@@ -149,57 +160,29 @@ idiom-weaver/
 | Vietnamese | vi | ✅ |
 | Dutch | nl | ✅ |
 
-## 🔒 Security Notes
+## Security Notes
 
 - API keys are server-side only (not exposed to frontend)
-- TTS requests are proxied through your server to avoid CORS issues
+- TTS requests are proxied through Netlify functions to avoid CORS issues
 - No user data is stored or logged
+- Netlify functions run in secure, isolated environments
 
-## 🚀 Deployment
+## Deployment
 
-### Production Build
+### Netlify Deployment (Recommended)
 
-```bash
-npm run build
-npm run start
-```
+1. **Connect your repository to Netlify**
+2. **Build settings:**
+   - Build command: `npm run netlify:build`
+   - Publish directory: `dist`
+   - Functions directory: `netlify/functions`
 
-### Environment Setup
+3. **Environment variables in Netlify:**
+   ```env
+   GEMINI_API_KEY=your_production_api_key
+   ```
 
-Ensure these environment variables are set in production:
-
-```env
-```bash
-GEMINI_API_KEY=your_production_api_key
-PORT=3001
-NODE_ENV=production
-```
-
-### Recommended Platforms
-
-- **Netlify** - For static frontend
-- **Railway** - For full-stack deployment
-- **Vercel** - With serverless functions
-- **Heroku** - Traditional hosting
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📧 Contact
-
-- **Email**: [voicevoz321@gmail.com](mailto:voicevoz321@gmail.com)
-- **Issues**: [GitHub Issues](https://github.com/your-username/idiom-weaver/issues)
-
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Google Gemini AI** - For intelligent cultural translations
 - **Google Translate TTS** - For text-to-speech functionality

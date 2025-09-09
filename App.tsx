@@ -244,7 +244,7 @@ const App: React.FC = () => {
   console.log("🎨 App component rendering...");
 
   return (
-    <div className="font-sans text-white p-4 sm:p-6 md:p-8 overflow-x-hidden">
+    <div className="font-sans text-white p-4 sm:p-6 md:p-8 overflow-x-hidden px-safe">
       <div className="max-w-4xl mx-auto relative">
         <Header />
         {duplicateNotification && (

@@ -6,6 +6,8 @@
 html,
 body {
     background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
+    /* Explicit background-color to ensure safe areas are filled on iOS */
+    background-color: #111827;
     margin: 0;
     padding: 0;
     height: 100%;
@@ -70,6 +72,8 @@ html::before {
     position: fixed;
     inset: 0;
     background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
+    /* Ensure safe areas get painted with the gradient */
+    background-color: #111827;
     z-index: -1;
     pointer-events: none;
     /* Reduce sub-pixel seams on mobile browsers */
@@ -93,6 +97,34 @@ html::before {
     }
     html::before {
         height: 100dvh;
+    }
+}
+
+/* Safe area utilities for iOS notch and browser UI overlap */
+@supports (padding: env(safe-area-inset-top)) {
+    .pt-safe {
+        padding-top: env(safe-area-inset-top);
+    }
+    .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .px-safe {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+}
+
+/* Fallback for older iOS versions */
+@supports (padding: constant(safe-area-inset-top)) {
+    .pt-safe {
+        padding-top: constant(safe-area-inset-top);
+    }
+    .pb-safe {
+        padding-bottom: constant(safe-area-inset-bottom);
+    }
+    .px-safe {
+        padding-left: constant(safe-area-inset-left);
+        padding-right: constant(safe-area-inset-right);
     }
 }
 

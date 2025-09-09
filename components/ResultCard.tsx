@@ -231,13 +231,13 @@ const ResultCard: React.FC<ResultCardProps> = ({
       {isModalOpen &&
         createPortal(
           <div
-            className={`fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-20 sm:pt-4 bg-background backdrop-blur-sm transition-all duration-300 ${
+            className={`fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-20 sm:pt-4 pb-safe px-safe bg-background backdrop-blur-sm transition-all duration-300 ${
               isModalAnimating ? "opacity-100" : "opacity-0"
             }`}
           >
             <div
               className={`bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-600/20 max-w-2xl w-full overflow-y-auto transform transition-all duration-300 ease-out ${
-                isSingleResult ? "max-h-[70vh]" : "max-h-[85vh] sm:max-h-[90vh]"
+                isSingleResult ? "max-h-[70svh] sm:max-h-[70vh]" : "max-h-[85svh] sm:max-h-[85vh] md:max-h-[90vh]"
               } ${
                 isModalAnimating
                   ? "scale-100 opacity-100 translate-y-0"
@@ -245,17 +245,17 @@ const ResultCard: React.FC<ResultCardProps> = ({
               }`}
             >
               {/* Modal Header */}
-              <div className="p-4 sm:p-6 border-b border-slate-600/30 bg-slate-700/30 rounded-t-xl">
+              <div className="sticky top-0 z-10 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-600/30 bg-slate-700/70 backdrop-blur-sm rounded-t-xl">
                 <div className="flex items-center justify-between">
                   <h2
-                    className="text-xl sm:text-2xl font-bold text-white"
+                    className="text-xl sm:text-2xl font-bold text-white leading-tight truncate pr-2"
                     style={{ fontFamily: "Varela Round, sans-serif" }}
                   >
                     {language}
                   </h2>
                   <button
                     onClick={closeModal}
-                    className="text-slate-400 hover:text-white transition-colors duration-200 p-2 hover:bg-slate-700/50 rounded-lg"
+                    className="text-slate-400 hover:text-white transition-colors duration-200 hover:bg-slate-700/50 rounded-lg h-10 w-10 flex items-center justify-center"
                     aria-label="Close modal"
                   >
                     <svg
@@ -276,7 +276,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
               </div>
 
               {/* Modal Content */}
-              <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+              <div className="p-4 sm:p-6 pt-3 sm:pt-4 space-y-4 sm:space-y-6">
                 {/* Main Idiom with TTS */}
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-3">
@@ -352,7 +352,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 sm:p-6 border-t border-slate-600/30 bg-slate-700/20 rounded-b-xl">
+              <div className="sticky bottom-0 z-10 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-600/30 bg-slate-700/70 backdrop-blur-sm rounded-b-xl pb-safe">
                 <button
                   onClick={closeModal}
                   className="w-full py-3 px-4 bg-slate-600/50 hover:bg-slate-500/50 rounded-lg text-white font-medium transition-all duration-200 hover:bg-slate-500 font-sans"

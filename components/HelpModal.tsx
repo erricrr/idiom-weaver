@@ -25,28 +25,44 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-20 sm:pt-4 pb-safe px-safe bg-black/50 backdrop-blur-sm"
       onClick={handleBackdropClick}
       onTouchEnd={handleBackdropTouch}
     >
-      <div className="bg-slate-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-6">
+      <div className="bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-600/20 max-w-2xl w-full overflow-y-auto max-h-[85svh] sm:max-h-[90vh]">
+        {/* Modal Header */}
+        <div className="sticky top-0 z-10 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-600/30 bg-slate-700/70 backdrop-blur-sm rounded-t-xl">
+          <div className="flex items-center justify-between">
             <h2
-              className="text-2xl font-bold text-white"
+              className="text-xl sm:text-2xl font-bold text-white leading-tight truncate pr-2"
               style={{ fontFamily: "Varela Round, sans-serif" }}
             >
               About Idiom Weaver
             </h2>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white text-2xl font-bold leading-none font-sans"
+              className="text-slate-400 hover:text-white transition-colors duration-200 hover:bg-slate-700/50 rounded-lg h-10 w-10 flex items-center justify-center"
+              aria-label="Close modal"
             >
-              ×
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
             </button>
           </div>
+        </div>
 
-          <div className="space-y-6 text-slate-300 font-sans">
+        {/* Modal Content */}
+        <div className="p-4 sm:p-6 pt-3 sm:pt-4 space-y-6 text-slate-300 font-sans">
             <div>
               <h3
                 className="text-xl font-semibold text-white mb-3"
@@ -180,7 +196,16 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                 </a>
               </p>
             </div>
-          </div>
+        </div>
+
+        {/* Modal Footer */}
+        <div className="sticky bottom-0 z-10 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-600/30 bg-slate-700/70 backdrop-blur-sm rounded-b-xl pb-safe">
+          <button
+            onClick={onClose}
+            className="w-full py-3 px-4 bg-slate-600/50 hover:bg-slate-500/50 rounded-lg text-white font-medium transition-all duration-200 hover:bg-slate-500 font-sans"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

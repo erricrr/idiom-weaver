@@ -1,20 +1,19 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { IdiomTranslation } from "../types";
+import { Language } from "../types";
 import { TTSService } from "../services/ttsService";
+import { getPhraseExplanation } from "../services/geminiDirectService";
 
-interface ResultCardProps {
-  language: string;
-  data: IdiomTranslation;
-  borderColor: string;
-  isSingleResult?: boolean;
+interface InputPhrasePreviewProps {
+  phrase: string;
+  sourceLanguage: Language | null;
+  isVisible: boolean;
 }
 
-const ResultCard: React.FC<ResultCardProps> = ({
-  language,
-  data,
-  borderColor,
-  isSingleResult = false,
+const InputPhrasePreview: React.FC<InputPhrasePreviewProps> = ({
+  phrase,
+  sourceLanguage,
+  isVisible,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,6 +22,16 @@ const ResultCard: React.FC<ResultCardProps> = ({
   const [showErrorToast, setShowErrorToast] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
   const [ttsService] = useState(() => new TTSService());
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
+  const [explanationError, setExplanationError] = useState<string | null>(null);
+
+  // Reset explanation when phrase or language changes
+  useEffect(() => {
+    setExplanation(null);
+    setExplanationError(null);
+    setIsLoadingExplanation(false);
+  }, [phrase, sourceLanguage]);
 
   // Prevent background scrolling and preserve position when modal is open
   const scrollYRef = useRef<number>(0);
@@ -77,7 +86,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
   }, [isModalOpen]);
 
   const handleTextClick = async (isRetry = false) => {
-    if (isPlaying || isRetrying) return;
+    if (isPlaying || isRetrying || !sourceLanguage) return;
 
     try {
       if (isRetry) {
@@ -90,7 +99,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
       setTtsError(null);
       setShowErrorToast(false);
 
-      await ttsService.playTextInLanguage(data.idiom, language);
+      await ttsService.playTextInLanguage(phrase, sourceLanguage);
     } catch (error) {
       console.error("Failed to play TTS:", error);
 
@@ -147,9 +156,31 @@ const ResultCard: React.FC<ResultCardProps> = ({
     }
   };
 
+  const fetchExplanation = async () => {
+    if (!phrase.trim() || !sourceLanguage || explanation) return;
+
+    setIsLoadingExplanation(true);
+    setExplanationError(null);
+
+    try {
+      const result = await getPhraseExplanation(phrase.trim(), sourceLanguage);
+      setExplanation(result);
+    } catch (error) {
+      console.error("Failed to fetch explanation:", error);
+      setExplanationError(error instanceof Error ? error.message : "Failed to get explanation");
+    } finally {
+      setIsLoadingExplanation(false);
+    }
+  };
+
   const openModal = () => {
     setIsModalOpen(true);
     setTimeout(() => setIsModalAnimating(true), 10);
+
+    // Fetch explanation when modal opens
+    if (!explanation && !isLoadingExplanation) {
+      fetchExplanation();
+    }
   };
 
   const closeModal = () => {
@@ -157,97 +188,80 @@ const ResultCard: React.FC<ResultCardProps> = ({
     setTimeout(() => setIsModalOpen(false), 200);
   };
 
+  // Don't render if phrase is empty or no source language
+  if (!phrase.trim() || !sourceLanguage || !isVisible) {
+    return null;
+  }
+
   return (
     <>
-      <div className="relative">
-        {/* Main card with fixed height structure */}
-        <div
-          className={`bg-slate-800/60 p-4 sm:p-6 rounded-lg shadow-xl flex flex-col h-full transform transition-all duration-300 overflow-hidden relative`}
-        >
-          {/* Top accent bar (replaces border-top to avoid corner bleed) */}
-          {(() => {
-            const accentBarBackgroundClass = borderColor.replace('border-', 'bg-');
-            return (
-              <div className={`absolute top-0 left-0 right-0 h-1 ${accentBarBackgroundClass}`} />
-            );
-          })()}
-          {/* Language name and main translation - always visible */}
-          <div className="flex-grow">
-            <h3
-              className="text-xl sm:text-2xl font-bold text-white mb-3"
-              style={{ fontFamily: "Varela Round, sans-serif" }}
+      <div className="mt-4 p-3 bg-slate-800/30 rounded-md border border-slate-600/20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <p
+              className={`text-cyan-300 text-sm font-medium underline decoration-dotted cursor-pointer font-sans truncate ${
+                isPlaying || isRetrying ? "opacity-70" : "hover:opacity-80"
+              }`}
+              onClick={() => handleTextClick(false)}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              style={{ touchAction: "manipulation" }}
+              title={`Click to hear "${phrase}" in ${sourceLanguage}`}
             >
-              {language}
-            </h3>
-            <div className="mb-4">
-              <div className="flex items-center gap-2">
-                <p
-                  className={`text-cyan-300 text-base sm:text-lg font-semibold underline decoration-dotted cursor-pointer font-sans ${
-                    isPlaying || isRetrying ? "opacity-70" : "hover:opacity-80"
-                  }`}
-                  onClick={() => handleTextClick(false)}
-                  onTouchStart={handleTouchStart}
-                  onTouchEnd={handleTouchEnd}
-                  style={{ touchAction: "manipulation" }}
-                  title={`Click to hear "${data.idiom}" in ${language}`}
-                >
-                  {data.idiom}
-                </p>
-                <button
-                  onClick={() => handleTextClick(false)}
-                  onTouchStart={handleTouchStart}
-                  onTouchEnd={handleTouchEnd}
-                  disabled={isPlaying || isRetrying}
-                  style={{ touchAction: "manipulation" }}
-                  className="p-1 text-cyan-300 hover:text-cyan-200 hover:bg-slate-700/50 rounded transition-all duration-200 disabled:opacity-50"
-                  title="Play audio"
-                >
-                  {isPlaying || isRetrying ? (
-                    <svg
-                      className="w-4 h-4 animate-pulse"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  ) : (
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Info button - positioned at bottom, always visible */}
-          <div className="mt-auto">
+              {phrase}
+            </p>
             <button
-              type="button"
-              onClick={openModal}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-700/50 hover:bg-slate-600/50 rounded-md text-slate-300 text-sm font-medium transition-all duration-200 hover:text-white group font-sans"
-              aria-label="View detailed information about this translation"
+              onClick={() => handleTextClick(false)}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              disabled={isPlaying || isRetrying}
+              style={{ touchAction: "manipulation" }}
+              className="p-1 text-cyan-300 hover:text-cyan-200 hover:bg-slate-700/50 rounded transition-all duration-200 disabled:opacity-50 flex-shrink-0"
+              title="Play audio"
             >
-              <span>View Details</span>
-              <svg
-                className="w-4 h-4 transition-transform duration-200 group-hover:scale-110"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              {isPlaying || isRetrying ? (
+                <svg
+                  className="w-3 h-3 animate-pulse"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              ) : (
+                <svg
+                  className="w-3 h-3"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              )}
             </button>
+            <span className="text-xs text-slate-500 flex-shrink-0">
+              {sourceLanguage}
+            </span>
           </div>
+          <button
+            type="button"
+            onClick={openModal}
+            className="ml-3 flex items-center gap-1 py-1.5 px-2.5 bg-slate-700/40 hover:bg-slate-600/40 rounded text-slate-400 text-xs font-medium transition-all duration-200 hover:text-slate-300 group font-sans flex-shrink-0"
+            aria-label="View explanation for this phrase"
+          >
+            <span>View Details</span>
+            <svg
+              className="w-3 h-3 transition-transform duration-200 group-hover:scale-110"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -260,9 +274,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
             }`}
           >
             <div
-              className={`bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-600/20 max-w-2xl w-full overflow-y-auto transform transition-all duration-300 ease-out ${
-                isSingleResult ? "max-h-[70svh] sm:max-h-[70vh]" : "max-h-[85svh] sm:max-h-[85vh] md:max-h-[90vh]"
-              } ${
+              className={`bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-600/20 max-w-2xl w-full overflow-y-auto transform transition-all duration-300 ease-out max-h-[70svh] sm:max-h-[70vh] ${
                 isModalAnimating
                   ? "scale-100 opacity-100 translate-y-0"
                   : "scale-95 opacity-0 translate-y-4"
@@ -275,7 +287,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
                     className="text-xl sm:text-2xl font-bold text-white leading-tight truncate pr-2"
                     style={{ fontFamily: "Varela Round, sans-serif" }}
                   >
-                    {language}
+                    Phrase Preview
                   </h2>
                   <button
                     onClick={closeModal}
@@ -301,7 +313,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
 
               {/* Modal Content */}
               <div className="p-4 sm:p-6 pt-3 sm:pt-4 space-y-4 sm:space-y-6">
-                {/* Main Idiom with TTS */}
+                {/* Main Phrase with TTS */}
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-3">
                     <p
@@ -314,9 +326,9 @@ const ResultCard: React.FC<ResultCardProps> = ({
                       onTouchStart={handleTouchStart}
                       onTouchEnd={handleTouchEnd}
                       style={{ touchAction: "manipulation" }}
-                      title={`Click to hear "${data.idiom}" in ${language}`}
+                      title={`Click to hear "${phrase}" in ${sourceLanguage}`}
                     >
-                      {data.idiom}
+                      {phrase}
                     </p>
                     <button
                       onClick={() => handleTextClick(false)}
@@ -346,18 +358,8 @@ const ResultCard: React.FC<ResultCardProps> = ({
                       )}
                     </button>
                   </div>
-                </div>
-
-                {/* Literal Translation */}
-                <div>
-                  <h4
-                    className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2"
-                    style={{ fontFamily: "Varela Round, sans-serif" }}
-                  >
-                    Literal Translation
-                  </h4>
-                  <p className="text-slate-200 italic text-lg">
-                    "{data.literal_translation}"
+                  <p className="text-sm text-slate-400 mt-2">
+                    Language: {sourceLanguage}
                   </p>
                 </div>
 
@@ -369,9 +371,31 @@ const ResultCard: React.FC<ResultCardProps> = ({
                   >
                     Explanation
                   </h4>
-                  <p className="text-slate-200 text-base leading-relaxed">
-                    {data.explanation}
-                  </p>
+                  {isLoadingExplanation ? (
+                    <div className="flex items-center space-x-2 text-slate-400">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-500"></div>
+                      <span className="text-sm">Analyzing phrase origins and cultural context...</span>
+                    </div>
+                  ) : explanationError ? (
+                    <div className="text-red-400 text-sm">
+                      <p className="mb-2">Failed to load explanation:</p>
+                      <p className="text-red-300">{explanationError}</p>
+                      <button
+                        onClick={fetchExplanation}
+                        className="mt-2 px-3 py-1 bg-red-600/20 hover:bg-red-600/30 rounded text-xs font-medium transition-colors"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  ) : explanation ? (
+                    <p className="text-slate-200 text-base leading-relaxed">
+                      {explanation}
+                    </p>
+                  ) : (
+                    <p className="text-slate-400 text-sm italic">
+                      Click "Explanation" to get cultural context and origins of this phrase.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -438,4 +462,4 @@ const ResultCard: React.FC<ResultCardProps> = ({
   );
 };
 
-export default ResultCard;
+export default InputPhrasePreview;

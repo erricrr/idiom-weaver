@@ -153,6 +153,103 @@ export const translateIdiomPartialDirect = async (
   }
 };
 
+// Get explanation for a phrase using Gemini API
+export const getPhraseExplanation = async (
+  phrase: string,
+  sourceLanguage: Language,
+): Promise<string> => {
+  let lastError: Error;
+
+  console.log(`🔍 Getting explanation for: "${phrase}" (${sourceLanguage})`);
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      console.log(`🔄 Explanation attempt ${attempt}/${MAX_RETRIES}`);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const response = await fetch("/api/explain", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phrase,
+          sourceLanguage,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = `HTTP error! status: ${response.status}`;
+
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || errorMessage;
+        } catch {
+          // If parsing fails, use the raw text
+          errorMessage = errorText || errorMessage;
+        }
+
+        if (response.status >= 500 && attempt < MAX_RETRIES) {
+          console.warn(
+            `⚠️ Server error (${response.status}), retrying in ${RETRY_DELAY}ms...`,
+          );
+          await sleep(RETRY_DELAY * attempt);
+          continue;
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+
+      if (!result || !result.explanation) {
+        throw new Error("Invalid response format from server");
+      }
+
+      console.log("✅ Explanation successful");
+      return result.explanation;
+
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`❌ Explanation attempt ${attempt} failed:`, error);
+
+      if (error instanceof Error) {
+        if (error.name === "AbortError") {
+          lastError = new Error(
+            "Explanation request timed out. Please try again.",
+          );
+        } else if (
+          error.message.includes("Failed to fetch") ||
+          error.message.includes("NetworkError")
+        ) {
+          lastError = new Error(
+            "Network connection failed. Please check your internet connection and try again.",
+          );
+        }
+      }
+
+      if (attempt < MAX_RETRIES && !error.message.includes("400")) {
+        console.log(`⏳ Retrying in ${RETRY_DELAY * attempt}ms...`);
+        await sleep(RETRY_DELAY * attempt);
+        continue;
+      }
+
+      break;
+    }
+  }
+
+  console.error("❌ All explanation attempts failed:", lastError);
+  throw (
+    lastError || new Error("Failed to get phrase explanation from the API.")
+  );
+};
+
 // Simple function to check if the API endpoint is available
 export const checkGeminiSetup = (): { isConfigured: boolean; message: string } => {
   // Since we're using Netlify functions, we just check if we're in a browser environment

@@ -4,6 +4,7 @@ import {
   detectLanguageHybrid,
   detectLanguageHeuristic,
 } from "../services/languageDetectionService";
+import InputPhrasePreview from "./InputPhrasePreview";
 
 interface IdiomInputFormProps {
   idiomInput: string;
@@ -563,6 +564,13 @@ const IdiomInputForm: React.FC<IdiomInputFormProps> = ({
           )}
         </div>
       )}
+
+      {/* Input Phrase Preview - Show when target languages section appears */}
+      <InputPhrasePreview
+        phrase={idiomInput.trim()}
+        sourceLanguage={sourceLanguage}
+        isVisible={!!(idiomInput.trim() && sourceLanguage && (currentStep >= 3 || hasCompletedFlow))}
+      />
 
       {/* Step 4: Submit Button - Only visible after target languages are selected */}
       {(currentStep >= 4 || hasCompletedFlow) && (

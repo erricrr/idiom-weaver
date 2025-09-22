@@ -69,8 +69,18 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, isExiting = fa
         ? 'transform translate-y-full opacity-0'
         : 'transform translate-y-0 opacity-100 animate-fade-in'
     }`}>
-        {/* Hidden aggregator to ensure Tailwind includes bg- classes for accent bars */}
-        <span className="hidden bg-purple-500 bg-pink-500 bg-red-600 bg-blue-500 bg-yellow-400 bg-gray-200 bg-green-500 bg-orange-500 bg-slate-500" />
+        {/* Ensure Tailwind includes bg- classes for accent bars */}
+        <div className="hidden">
+          <div className="bg-purple-500"></div>
+          <div className="bg-pink-500"></div>
+          <div className="bg-red-600"></div>
+          <div className="bg-blue-500"></div>
+          <div className="bg-yellow-400"></div>
+          <div className="bg-gray-200"></div>
+          <div className="bg-green-500"></div>
+          <div className="bg-orange-500"></div>
+          <div className="bg-slate-500"></div>
+        </div>
         <h2
           ref={culturalEquivalentsRef}
           id="cultural-equivalents"

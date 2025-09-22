@@ -261,7 +261,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
           >
             <div
               className={`bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-600/20 max-w-2xl w-full overflow-y-auto transform transition-all duration-300 ease-out ${
-                isSingleResult ? "max-h-[70svh] sm:max-h-[70vh]" : "max-h-[85svh] sm:max-h-[85vh] md:max-h-[90vh]"
+                isSingleResult ? "max-h-[75svh] sm:max-h-[75vh]" : "max-h-[80svh] sm:max-h-[80vh] md:max-h-[85vh]"
               } ${
                 isModalAnimating
                   ? "scale-100 opacity-100 translate-y-0"
@@ -376,7 +376,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
               </div>
 
               {/* Modal Footer */}
-              <div className="sticky bottom-0 z-10 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-600/30 bg-slate-700/70 backdrop-blur-sm rounded-b-xl pb-safe">
+              <div className="sticky bottom-0 z-10 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-600/30 bg-slate-700/70 backdrop-blur-sm rounded-b-xl pb-4 sm:pb-4">
                 <button
                   onClick={closeModal}
                   className="w-full py-3 px-4 bg-slate-600/50 hover:bg-slate-500/50 rounded-lg text-white font-medium transition-all duration-200 hover:bg-slate-500 font-sans"

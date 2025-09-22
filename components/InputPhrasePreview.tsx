@@ -274,7 +274,7 @@ const InputPhrasePreview: React.FC<InputPhrasePreviewProps> = ({
             }`}
           >
             <div
-              className={`bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-600/20 max-w-2xl w-full overflow-y-auto transform transition-all duration-300 ease-out max-h-[70svh] sm:max-h-[70vh] ${
+              className={`bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-600/20 max-w-2xl w-full overflow-y-auto transform transition-all duration-300 ease-out max-h-[75svh] sm:max-h-[75vh] ${
                 isModalAnimating
                   ? "scale-100 opacity-100 translate-y-0"
                   : "scale-95 opacity-0 translate-y-4"
@@ -284,7 +284,7 @@ const InputPhrasePreview: React.FC<InputPhrasePreviewProps> = ({
               <div className="sticky top-0 z-10 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-600/30 bg-slate-700/70 backdrop-blur-sm rounded-t-xl">
                 <div className="flex items-center justify-between">
                   <h2
-                    className="text-xl sm:text-2xl font-bold text-white leading-tight truncate pr-2"
+                    className="text-xl sm:text-2xl font-bold text-white leading-tight truncate pr-2 invisible"
                     style={{ fontFamily: "Varela Round, sans-serif" }}
                   >
                     Phrase Preview
@@ -400,7 +400,7 @@ const InputPhrasePreview: React.FC<InputPhrasePreviewProps> = ({
               </div>
 
               {/* Modal Footer */}
-              <div className="sticky bottom-0 z-10 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-600/30 bg-slate-700/70 backdrop-blur-sm rounded-b-xl pb-safe">
+              <div className="sticky bottom-0 z-10 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-600/30 bg-slate-700/70 backdrop-blur-sm rounded-b-xl pb-4 sm:pb-4">
                 <button
                   onClick={closeModal}
                   className="w-full py-3 px-4 bg-slate-600/50 hover:bg-slate-500/50 rounded-lg text-white font-medium transition-all duration-200 hover:bg-slate-500 font-sans"

@@ -102,6 +102,7 @@ export const handler = async (event, context) => {
       "ja",
       "pt",
       "nl",
+      "sv",
       "it",
       "ru",
       "zh",

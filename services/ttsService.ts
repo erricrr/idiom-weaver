@@ -415,6 +415,7 @@ export class TTSService {
       Japanese: "ja",
       Portuguese: "pt",
       Dutch: "nl",
+      Swedish: "sv",
       Italian: "it",
       Russian: "ru",
       Chinese: "zh",

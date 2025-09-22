@@ -7,6 +7,7 @@ export enum Language {
   Japanese = 'Japanese',
   Portuguese = 'Portuguese',
   Dutch = 'Dutch',
+  Swedish = 'Swedish',
 }
 
 export interface IdiomTranslation {

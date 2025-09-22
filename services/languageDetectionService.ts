@@ -111,6 +111,7 @@ export const detectLanguage = async (
       ja: Language.Japanese,
       pt: Language.Portuguese,
       nl: Language.Dutch,
+      sv: Language.Swedish,
       // Alternative codes that might be returned
       eng: Language.English,
       spa: Language.Spanish,
@@ -123,6 +124,7 @@ export const detectLanguage = async (
       por: Language.Portuguese,
       dut: Language.Dutch,
       nld: Language.Dutch,
+      swe: Language.Swedish,
     };
 
     const mappedLanguage = languageCodeMap[detectedLanguageCode.toLowerCase()];
@@ -186,6 +188,7 @@ export const detectLanguageHeuristic = (
     [Language.Japanese]: 0,
     [Language.Portuguese]: 0,
     [Language.Dutch]: 0,
+    [Language.Swedish]: 0,
   };
 
   // Enhanced English patterns (common words, contractions, idioms)
@@ -355,6 +358,27 @@ export const detectLanguageHeuristic = (
   japanesePatterns.forEach((pattern) => {
     const matches = lowerText.match(pattern);
     if (matches) scores[Language.Japanese] += matches.length * 4; // Higher weight due to character-based detection
+  });
+
+  // Swedish patterns (articles, prepositions, common words)
+  const swedishPatterns = [
+    /\b(en|ett|den|det|de|dem|denna|detta|dessa|en|ett|någon|något|några)\b/g,
+    /\b(och|eller|men|att|som|när|där|varför|om|för|med|av|till|från|under|över|mellan|genom)\b/g,
+    /\b(är|var|vara|har|hade|kommer|skulle|kunde|borde|måste|kan|får|vill|gör|göra|säger|säga)\b/g,
+    /\b(vatten|tid|år|dag|person|värld|liv|man|kvinna|land|stad|arbete|hand|öga|huvud|hjärta|kärlek)\b/g,
+    /\b(mycket|mer|mindre|allt|alla|denna|detta|dessa|den|det|de|dem)\b/g,
+    /[åäö]/g, // Swedish-specific characters
+    /\b\w+het\b/g, // Swedish -het endings
+    /\b\w+skap\b/g, // Swedish -skap endings
+    /\b\w+ning\b/g, // Swedish -ning endings
+    /\b\w+else\b/g, // Swedish -else endings
+    /\b\w+ande\b/g, // Swedish -ande endings
+    /\b\w+ende\b/g, // Swedish -ende endings
+  ];
+
+  swedishPatterns.forEach((pattern) => {
+    const matches = lowerText.match(pattern);
+    if (matches) scores[Language.Swedish] += matches.length * 2;
   });
 
   // Find the language with the highest score
@@ -631,6 +655,7 @@ if (typeof window !== "undefined") {
       dutch: "Wie het laatst lacht, lacht het best",
       vietnamese: "Có công mài sắt có ngày nên kim",
       japanese: "猿も木から落ちる",
+      swedish: "Det är aldrig för sent att lära",
     },
     testAll: async () => {
       const examples = (window as any).languageDetectionDebug.examples;

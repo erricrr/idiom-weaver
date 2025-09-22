@@ -159,6 +159,7 @@ lsof -ti:5173 | xargs kill -9
 | Portuguese | pt | ✅ |
 | Vietnamese | vi | ✅ |
 | Dutch | nl | ✅ |
+| Swedish | sv | ✅ |
 
 ## Security Notes
 
